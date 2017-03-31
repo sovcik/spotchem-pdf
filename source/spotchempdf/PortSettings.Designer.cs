@@ -219,6 +219,7 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "frmSerialSettings";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Nastavenie spojenia";
             this.ResumeLayout(false);
             this.PerformLayout();

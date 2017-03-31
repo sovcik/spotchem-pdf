@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Globalization;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -17,22 +18,23 @@ namespace spotchempdf
 
         private static readonly ILog log = LogManager.GetLogger(typeof(ReadingItem));
 
-        [JsonProperty]
         public string name { get; set; }
-
-        [JsonProperty]
-        public char abnormalMark { get; set; }
-
-        [JsonProperty]
-        public float value { get; set; }
-
-        [JsonProperty]
-        public string unit { get; set; }
-
-        [JsonProperty]
+        public char abnormalMark { get; set; } = ' ';
+        public float value { get; set; } = -9999;
+        public string unit { get; set; } = "";
         public int temp { get; set; }
+        public string error { get; set; } = "";
 
+        public ReadingItem(string name, char mark, float value, string unit, char temp)
+        {
+            this.name = name;
+            this.abnormalMark = mark;
+            this.value = value;
+            this.unit = unit;
+            this.temp = tempToNum(temp);
+        }
 
+        [JsonConstructor]
         public ReadingItem(string name, char mark, float value, string unit, int temp)
         {
             this.name = name;
@@ -41,6 +43,14 @@ namespace spotchempdf
             this.unit = unit;
             this.temp = temp;
         }
+
+        public ReadingItem(string name, string error, int temp)
+        {
+            this.name = name;
+            this.error = error;
+            this.temp = temp;
+        }
+
 
         int tempToNum(char t)
         {
@@ -72,9 +82,9 @@ namespace spotchempdf
             char m = ' ';
             
             if (value < min)
-                m = (char)0x1F;
+                m = (char)Reading.ASCII_US;
             else if (value > min)
-                m = (char)0x1E;
+                m = (char)Reading.ASCII_RS;
 
             return new ReadingItem(test, m, value, unit, temp);
         }
@@ -85,25 +95,45 @@ namespace spotchempdf
     [JsonObject]
     public class Reading
     {
+        [JsonIgnore]
+        public const byte ASCII_STX     = 0x02;
+        [JsonIgnore]
+        public const byte ASCII_ETX     = 0x03;
+        [JsonIgnore]
+        public const byte ASCII_ETB     = 0x17;
+        [JsonIgnore]
+        public const byte ASCII_US      = 0x1F;
+        [JsonIgnore]
+        public const byte ASCII_RS      = 0x1E;
+        [JsonIgnore]
+        public const byte ASCII_BLANK   = 0x20;
+
         private static readonly ILog log = LogManager.GetLogger(typeof(Reading));
 
-        [JsonProperty]
         public DateTime date { get; set; }
-
-        [JsonProperty]
         public string id { get; set; }
-
-        [JsonProperty]
-        public string multiName { get; set; }
-
-        [JsonProperty]
+        public string multiName { get; set; } = "";
         public ConcurrentDictionary<string, ReadingItem> items = new ConcurrentDictionary<string, ReadingItem>();
+
+        private static Object FileWriteLock = new Object();
+
+        [JsonConstructor]
+        public Reading(string id, DateTime date)
+        {
+            this.id = id;
+            this.date = date;
+        }
 
         public Reading(string id, DateTime date, string multiName)
         {
             this.id = id;
             this.date = date;
             this.multiName = multiName.Trim();
+        }
+
+        public void setMultiName(string name)
+        {
+            this.multiName = name;
         }
 
         public bool isMulti()
@@ -147,18 +177,30 @@ namespace spotchempdf
             return rd;
         }
 
+        public static Reading fromJSONFile(string fname)
+        {
+            string s = "";
+            lock (FileWriteLock)
+            {
+                s = File.ReadAllText(fname);
+            }
+            Reading rd = Reading.FromJSON(s);
+            return rd;
+        }
+
+
         public void Save(string path)
         {
-            string fname = id + @"-" + date.ToString("yyyyMMdd") + @"-" + date.ToString("HHmm")+@".json";
+            string fname = id.Trim() + @"-" + date.ToString("yyyyMMdd") + @"-" + date.ToString("HHmm")+@".json";
             SaveToFile(path + @"\" + fname, ToJSON());
 
         }
 
-        public static async void SaveToFile(string fname, string content)
+        public static void SaveToFile(string fname, string content)
         {
-            using (StreamWriter outputFile = new StreamWriter(fname))
+            lock (FileWriteLock)
             {
-                await outputFile.WriteAsync(content);
+                System.IO.File.WriteAllText(fname, content);
             }
 
         }
@@ -199,6 +241,86 @@ namespace spotchempdf
                 c--;
                 rd.Save(folder);
             }
+        }
+
+        private static string b2S(byte[] b, int indexFrom, int count)
+        {
+            byte[] b1 = new byte[count];
+            Array.Copy(b, indexFrom, b1, 0, count);
+            return System.Text.Encoding.ASCII.GetString(b1);
+        }
+
+        public static List<Reading> parse(byte[] msg)
+        {
+            List<Reading> lrd = new List<Reading>();
+            Reading rd;
+
+            int off = 0;
+            string s;
+            float v;
+
+            // STX is at offset 0
+
+            // parse header
+            off = 0;
+
+            // get date + time
+            s = b2S(msg, off + 1, 20);
+            
+            DateTime d = DateTime.ParseExact(s, "yy/MM/dd     HH:mm  ", CultureInfo.InvariantCulture);
+            //DateTime d = new DateTime(2000 + msg[off+1]-48 * 10 + msg[off+2], msg[off+4] * 10 + msg[off+5], msg[off+7] * 10 + msg[off+8], msg[off+14] * 10 + msg[off+15], msg[off+17] * 10 + msg[off+18], 0);
+
+            // get reading ID
+            s = b2S(msg, off+27, 10).Trim();
+
+            rd = new Reading(s, d);
+
+            // read measurements 
+            off += 44; // move past reading header
+
+            // check if it is an multi-reagent strip - if yes, set its name
+            if (b2S(msg, off + 1, 6).Trim().StartsWith("MULTI"))
+                rd.setMultiName(b2S(msg, off + 8, 10));
+
+            off += 22; // move past strip header
+
+            // read items
+            while (off+1 < msg.Length && msg[off+1] != Reading.ASCII_ETB && msg[off+1] != Reading.ASCII_ETX)
+            {
+                string name = b2S(msg, off + 1, 5).Trim();
+                s = b2S(msg, off + 7, 3);
+                switch (s)
+                {
+                    case "UND":
+                    case "OVE":
+                    case "CAN":
+                    case "CAL":
+                        char t = (char)msg[off + 20];
+                        rd.AddItem(new ReadingItem(name, b2S(msg,off+7,13),t));
+                        break;
+                    default:
+                        char am = (char)msg[off + 7];
+                        s = b2S(msg, off + 8, 5);
+                        try
+                        {
+                            v = float.Parse(s, CultureInfo.InvariantCulture.NumberFormat);
+                        } catch (FormatException ex)
+                        {
+                            log.Warn("Error while parsing value '" + s + "' as number.");
+                            v = -9999;
+                        } 
+                        string unit = b2S(msg, off + 14, 6).Trim();
+                        t = (char)msg[off + 20];
+                        rd.AddItem(new ReadingItem(name, am, v, unit, t));
+                        break;
+                }
+                off += 22;
+            }
+
+            lrd.Add(rd);
+
+            return lrd;
+
         }
 
 

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("spotchempdf")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("SpotchemPDF")]
+[assembly: AssemblyDescription("PDF writer for Arkray Spotchem SP-4430")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("spotchempdf")]
+[assembly: AssemblyProduct("SpotchemPDF")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

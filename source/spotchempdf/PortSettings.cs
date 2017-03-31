@@ -20,6 +20,7 @@ namespace spotchempdf
 
             portName.DataSource = System.IO.Ports.SerialPort.GetPortNames();
             portName.SelectedIndex = portName.FindStringExact(cfg.name);
+            this.baudRate.Text = cfg.baudRate.ToString();
             this.dataBits.Text = cfg.dataBits.ToString();
             this.parity.Text = cfg.parity.ToString();
             this.stopBits.Text = cfg.stopBits.ToString();

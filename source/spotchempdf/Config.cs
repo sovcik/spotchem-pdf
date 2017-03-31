@@ -6,6 +6,19 @@ using log4net;
 
 namespace spotchempdf
 {
+    public class window
+    {
+        public int x = 200;
+        public int y = 200;
+
+        public window(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+
     public class COMport
     {
         public string name { get; set; } = "COM1";
@@ -29,7 +42,7 @@ namespace spotchempdf
 
         public COMport comPort = new COMport();
 
-        public string readingsFolder, logFolder, outputFolder;
+        public string readingsFolder, logFolder, outputFolder, archiveFolder;
         [JsonIgnore]
         public string configFolder;
         public string logConfigFile = "log4net.xml";
@@ -39,6 +52,9 @@ namespace spotchempdf
 
         public bool openPDFAfterSave = true;
 
+        public window mainWindow = new window(200, 200);
+        public window portSetWindow = new window(250, 250);
+
         public Config()
         {
             string AppName = "SpotchemPDF";
@@ -47,6 +63,7 @@ namespace spotchempdf
             AppDataFld = AppDataFld + @"\" + AppName;
 
             readingsFolder = AppDataFld + @"\Readings";
+            archiveFolder = readingsFolder + @"\Archive";
             logFolder = AppDataFld + @"\Log";
             configFolder = AppDataFld + @"\Configuration";
             outputFolder = AppDataFld;
@@ -89,6 +106,7 @@ namespace spotchempdf
         public void createFolders()
         {
             Directory.CreateDirectory(readingsFolder);
+            Directory.CreateDirectory(archiveFolder);
             Directory.CreateDirectory(logFolder);
             Directory.CreateDirectory(configFolder);
             Directory.CreateDirectory(outputFolder);

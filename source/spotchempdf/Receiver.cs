@@ -9,6 +9,7 @@ namespace spotchempdf
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(SerialReceiver));
         SerialPort sp;
+        IBufferProcessor processor;
 
         public void OpenSerial(COMport port)
         {
@@ -36,6 +37,11 @@ namespace spotchempdf
 
         }
 
+        public void setBufferProcessor(IBufferProcessor bp)
+        {
+            processor = bp;
+        }
+
         private void DataReceivedHandler(
                            object sender,
                            SerialDataReceivedEventArgs e)
@@ -44,8 +50,10 @@ namespace spotchempdf
 
             int read;
             int offset = 0;
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[10000];
             int toRead = sp.BytesToRead;
+            if (toRead > buffer.Length)
+                toRead = buffer.Length;
 
             log.Debug("Data Received: " + toRead);
 
@@ -56,7 +64,8 @@ namespace spotchempdf
             }
             if (toRead > 0) throw new EndOfStreamException();
 
-            //processBuffer(buffer, offset);
+            if (processor != null)
+                processor.processBuffer(buffer, offset);
         }
 
         public bool isOpen()

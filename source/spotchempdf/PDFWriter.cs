@@ -42,7 +42,7 @@ namespace spotchempdf
             this.ranges = ranges;
         }
 
-        public void savePDF(Reading rd, string pdfFileName, bool OpenAfterSave)
+        public string savePDF(Reading rd, string pdfFileName, bool OpenAfterSave)
         {
             XPen pen = XPens.Black;
 
@@ -107,7 +107,10 @@ namespace spotchempdf
                 Range r = new Range();
                 ranges.ranges.TryGetValue(ie.Current.Value.name, out r);
                 if (r == null) r = new Range(ie.Current.Value.value, ie.Current.Value.value,"x");
-                writeTableRow(y + i * tRowHeight, ie.Current.Value.name, ie.Current.Value.value.ToString()+" "+ie.Current.Value.unit, r, ie.Current.Value.value);
+                if (ie.Current.Value.error == null || ie.Current.Value.error.Length == 0)
+                    writeTableRow(false, y + i * tRowHeight, ie.Current.Value.name, ie.Current.Value.value.ToString()+" "+ie.Current.Value.unit, r, ie.Current.Value.value);
+                else
+                    writeTableRow(true, y + i * tRowHeight, ie.Current.Value.name, ie.Current.Value.error, r, 0);
                 i++;
             }
 
@@ -131,9 +134,11 @@ namespace spotchempdf
                 log.Debug("Opening PDF Viewer for " + pdfFileName);
                 Process.Start(pdfFileName);
             }
+
+            return pdfFileName;
         }
 
-        private void writeTableRow(double y, string testName, string testResult, Range range, float result)
+        private void writeTableRow(bool error, double y, string testName, string testResult, Range range, float result)
         {
             string resWord = "";
             XBrush resBrush = brush;
@@ -155,7 +160,7 @@ namespace spotchempdf
             graph.DrawString(testName, font, resBrush, tc[0], y);
             graph.DrawString(testResult, font, resBrush, tc[1], y);
 
-            if (range.max != range.min)
+            if (!error && range.max != range.min)
             {
                 int mark = (tc[5] - tc[4]) / 3;
                 float resScaleMax = range.max + (range.max - range.min);
