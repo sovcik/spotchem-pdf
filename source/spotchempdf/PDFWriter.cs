@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
+
 using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
@@ -42,7 +42,7 @@ namespace spotchempdf
             this.ranges = ranges;
         }
 
-        public string savePDF(Reading rd, string pdfFileName, bool OpenAfterSave)
+        public string savePDF(Reading rd, string pdfFileName, bool OpenAfterSave, Provider provider)
         {
             XPen pen = XPens.Black;
 
@@ -50,26 +50,30 @@ namespace spotchempdf
 
             int topMargin = 50;
             int leftMargin = 50;
-            int headerSize = 120;
+            int headerSize = 140;
 
             pdf = new PdfDocument();
             pdf.Info.Title = "SpotchemPDF";
             PdfPage pdfPage = pdf.AddPage();
             graph = XGraphics.FromPdfPage(pdfPage);
 
-            double x = pdfPage.Width.Point - 200;
+            double x = pdfPage.Width.Point - 230;
             double y = topMargin;
 
             // address
-            graph.DrawString("MVDr.Milan Švihran", font, brush, x, y);
+            graph.DrawString(provider.name, font, brush, x, y);
             y += 17;
-            graph.DrawString("Semenárska 36", font, brush, x, y);
+            graph.DrawString(provider.address1, font, brush, x, y);
             y += 17;
-            graph.DrawString("85110 Bratislava-Jarovce", font, brush, x, y);
+            graph.DrawString(provider.address2, font, brush, x, y);
             y += 17;
-            graph.DrawString("+421 (905) 404 521", font, brush, x, y);
+            graph.DrawString(provider.address3, font, brush, x, y);
             y += 17;
-            graph.DrawString("+421 (2) 6286 0274", font, brush, x, y);
+            graph.DrawString(provider.address4, font, brush, x, y);
+            y += 17;
+            graph.DrawString(provider.contact1, font, brush, x, y);
+            y += 17;
+            graph.DrawString(provider.contact2, font, brush, x, y);
             y += 17;
 
             // date & time
@@ -78,8 +82,12 @@ namespace spotchempdf
             graph.DrawString("Dátum: " + rd.date.ToShortDateString()+"   "+rd.date.ToShortTimeString(), font, brush, x, y);
 
             // client details
-            y+= 20;
-            graph.DrawString("Zviera: " + rd.id, font, brush, x, y);
+            y += 2*17;
+            graph.DrawString("Id: " + rd.id, font, brush, x, y);
+            y += 17;
+            graph.DrawString("Zviera: "+rd.animalName, font, brush, x, y);
+            y += 17;
+            graph.DrawString("Klient: (" + rd.clientId+") "+rd.clientName, font, brush, x, y);
 
 
             // table column names
@@ -140,19 +148,19 @@ namespace spotchempdf
 
         private void writeTableRow(bool error, double y, string testName, string testResult, Range range, float result)
         {
-            string resWord = "";
+            //string resWord = "";
             XBrush resBrush = brush;
             XPen resPen = XPens.Black;
             
 
             if (result < range.min) {
-                resWord = "Nízky";
+                //resWord = "Nízky";
                 resBrush = XBrushes.Blue;
                 resPen = XPens.Blue;
             }
 
             if (result > range.max) {
-                resWord = "Vysoký";
+                //resWord = "Vysoký";
                 resBrush = XBrushes.Red;
                 resPen = XPens.Red;
             }

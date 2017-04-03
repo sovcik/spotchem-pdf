@@ -115,6 +115,10 @@ namespace spotchempdf
         public string multiName { get; set; } = "";
         public ConcurrentDictionary<string, ReadingItem> items = new ConcurrentDictionary<string, ReadingItem>();
 
+        public string clientId { get; set; } = "";
+        public string clientName { get; set; } = "";
+        public string animalName { get; set; } = "";
+
         private static Object FileWriteLock = new Object();
 
         [JsonConstructor]
@@ -304,7 +308,7 @@ namespace spotchempdf
                         try
                         {
                             v = float.Parse(s, CultureInfo.InvariantCulture.NumberFormat);
-                        } catch (FormatException ex)
+                        } catch (FormatException)
                         {
                             log.Warn("Error while parsing value '" + s + "' as number.");
                             v = -9999;

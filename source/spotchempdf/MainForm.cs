@@ -20,7 +20,7 @@ namespace spotchempdf
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(FrmMain));
 
-        ConcurrentDictionary<string, Reading> readings = new ConcurrentDictionary<string, Reading>();
+        ConcurrentDictionary<string, Reading> loadedReadings = new ConcurrentDictionary<string, Reading>();
         Random r = new Random();
 
         Config cfg = new Config();
@@ -31,6 +31,9 @@ namespace spotchempdf
         int spBOffset = 0;
 
         List<dynamic> readingsList = new List<dynamic>();
+        Reading selectedReading;
+        bool readingUpdated;
+        Object updateLock = new Object();
 
         PDFWriter pdfw;
         SerialReceiver sr = new SerialReceiver();
@@ -56,6 +59,7 @@ namespace spotchempdf
 
             this.Location = new System.Drawing.Point(cfg.mainWindow.x, cfg.mainWindow.y);
             InitializeComponent();
+            lstReadings.Items.Clear();
 
             // create application folders
             cfg.createFolders();
@@ -89,7 +93,9 @@ namespace spotchempdf
             sr.setBufferProcessor(this);
             updateSerialStatus();
 
-            lstReadings.Items.Clear();
+            
+
+            timer1.Interval = 500; // 500ms between keystrokes is considered as interval long enough to save updates
 
             LoadReadings(cfg.readingsFolder);
 
@@ -101,13 +107,13 @@ namespace spotchempdf
             string[] filePaths = Directory.GetFiles(path);
 
             log.Debug("Loading readings from " + path);
-            readings.Clear();
+            loadedReadings.Clear();
             readingsList.Clear();
 
             foreach (string file in Directory.EnumerateFiles(path, "*.json"))
             {
                 Reading rd = Reading.fromJSONFile(file);
-                if (readings.TryAdd(rd.GetUUID(), rd))
+                if (loadedReadings.TryAdd(rd.GetUUID(), rd))
                     readingsList.Add(new { Id = rd.GetUUID(), Name = rd.GetTitle(), FName = file });
                 else
                     log.Warn("Failed to load reading " + rd.GetTitle());
@@ -123,8 +129,11 @@ namespace spotchempdf
             }
 
             lstReadings.Invalidate();
+           
 
-            log.Info("Loaded " + readings.Count + " readings.");
+            log.Info("Loaded " + loadedReadings.Count + " readings.");
+
+            updateSelectedReading();
 
         }
 
@@ -132,28 +141,40 @@ namespace spotchempdf
         private void btnSavePDF_Click(object sender, EventArgs e)
         {
             Reading r;
-            if (lstReadings.Items.Count == 0 || lstReadings.SelectedIndex > lstReadings.Items.Count)
+            if (lstReadings.Items.Count == 0 || lstReadings.SelectedIndex > lstReadings.Items.Count || lstReadings.SelectedIndex < 0)
+            {
+                log.Debug("SavePDF: Empty list or nothing selected.");
                 return;
+            }
 
             // get selected item
             String s = lstReadings.SelectedItem.ToString();
-            if (!readings.TryGetValue(lstReadings.SelectedValue.ToString(), out r))
-                log.Warn("Unable to find reading UUID=" + lstReadings.SelectedValue.ToString());
+            if (!loadedReadings.TryGetValue(lstReadings.SelectedValue.ToString(), out r))
+                log.Warn("SavePDF: Unable to find reading UUID=" + lstReadings.SelectedValue.ToString());
             else
             {
                 // save reading to PDF
-                s = pdfw.savePDF(r, cfg.outputFolder + @"\" + r.GetUUID(), cfg.openPDFAfterSave);
-                log.Info("Reading(" + r.GetUUID() + ") saved to file=" + s);
+                s = pdfw.savePDF(r, cfg.outputFolder + @"\" + r.GetUUID(), cfg.openPDFAfterSave, cfg.provider);
+                log.Info("SavePDF: Reading(" + r.GetUUID() + ") saved to file=" + s);
 
                 // move reading to archive
                 s = readingsList.Find(x => x.Id == r.GetUUID()).FName;
                 s = Path.GetFileName(s);
+                string sa = s;
+                if (File.Exists(cfg.archiveFolder + @"\" + s))
+                {
+                    log.Debug("Reading already archived. Adding version.");
+                    int sfx = 0;
+                    while (File.Exists(s + "." + sfx)) sfx++;
+                    sa = s + "." + sfx;
+                }
                 try
                 {
-                    File.Move(cfg.readingsFolder + @"\" + s, cfg.archiveFolder + @"\" + s);
+                    File.Move(cfg.readingsFolder + @"\" + s, cfg.archiveFolder + @"\" + sa);
+                    log.Info("Reading file=" + s + " moved to file=" + cfg.archiveFolder + @"\" + sa);
                 } catch (IOException ex)
                 {
-                    log.Warn("Error while moving file to archve folder. " + ex.Message);
+                    log.Warn("SavePDF: Error while moving file to archve folder. " + ex.Message);
                 }
 
                 // remove reading from the list
@@ -335,6 +356,101 @@ namespace spotchempdf
         private void showAfterSave_CheckedChanged(object sender, EventArgs e)
         {
             cfg.openPDFAfterSave = ((CheckBox)sender).Checked;
+        }
+
+        private void saveUpdates()
+        {
+            lock (updateLock)
+            {
+
+                if (readingUpdated && selectedReading != null)
+                {
+                    String key = selectedReading.GetUUID();
+                    lock (selectedReading)
+                    {
+
+                        loadedReadings[key].clientId = selectedReading.clientId;
+                        loadedReadings[key].clientName = selectedReading.clientName;
+                        loadedReadings[key].animalName = selectedReading.animalName;
+                        loadedReadings[key].Save(cfg.readingsFolder);
+
+                        selectedReading.clientId = clientId.Text;
+                        selectedReading.clientName = clientName.Text;
+                        selectedReading.animalName = animalName.Text;
+
+                    }
+
+                }
+
+                timer1.Stop();
+                readingUpdated = false;
+            }
+
+        }
+
+        private void readingModified_TextChanged(object sender, EventArgs e)
+        {
+            lock (updateLock)
+            {
+                readingUpdated = true;
+                timer1.Start();
+            }
+
+        }
+
+        private void updateSelectedReading()
+        {
+            if (lstReadings.Items.Count == 0 || lstReadings.SelectedIndex > lstReadings.Items.Count || lstReadings.SelectedIndex < 0)
+            {
+                selectedReading = null;
+                log.Info("UpdateSelected: List of readings is empty or nothing is selected. count="+lstReadings.Items.Count + " selected="+lstReadings.SelectedIndex);
+                clientId.Enabled = false;
+                clientName.Enabled = false;
+                animalName.Enabled = false;
+                btnSave.Enabled = false;
+                clientId.Text = "";
+                clientName.Text = "";
+                animalName.Text = "";
+
+                return;
+            }
+
+
+            // get selected item
+            try
+            {
+                selectedReading = loadedReadings[lstReadings.SelectedValue.ToString()];
+
+                clientId.Enabled = true;
+                clientName.Enabled = true;
+                animalName.Enabled = true;
+                btnSave.Enabled = true;
+
+                clientId.Text = selectedReading.clientId;
+                clientName.Text = selectedReading.clientName;
+                animalName.Text = selectedReading.animalName;
+
+            }
+            catch (KeyNotFoundException)
+            {
+                log.Warn("UpdateSelected: Unable to find reading UUID=" + lstReadings.SelectedValue.ToString());
+                clientId.Text = "";
+                clientName.Text = "";
+                animalName.Text = "";
+
+            }
+
+        }
+
+        private void lstReadings_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            saveUpdates();
+            updateSelectedReading();
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            saveUpdates();
         }
     }
 }
