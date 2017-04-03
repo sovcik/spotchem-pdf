@@ -340,6 +340,9 @@ namespace spotchempdf
             // set saved window coordinates
             frmPortSet.Location = new System.Drawing.Point(cfg.portSetWindow.x, cfg.portSetWindow.y);
 
+            // configure using current parameters
+            frmPortSet.setParams(cfg.comPort.name, cfg.comPort.baudRate);
+
             frmPortSet.ShowDialog();
 
             // remember changed window location
@@ -350,6 +353,8 @@ namespace spotchempdf
             {
                 cfg.comPort.name = frmPortSet.getPortName();
                 log.Info("Serial port changed to " + cfg.comPort.name);
+
+                cfg.comPort.baudRate = frmPortSet.getBaudRate();
 
                 cfg.Save();
                 log.Debug("Configuration saved.");

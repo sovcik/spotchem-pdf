@@ -44,5 +44,19 @@ namespace spotchempdf
         {
             return portName.Text;
         }
+
+        public int getBaudRate()
+        {
+            int br = 0;
+            if (!int.TryParse(baudRate.Text, out br))
+                br = 0;
+            return br;
+        }
+
+        public void setParams(string portname, int baudrate)
+        {
+            portName.Text = portname;
+            baudRate.Text = baudrate.ToString();
+        }
     }
 }
