@@ -158,7 +158,7 @@ namespace spotchempdf
 
         public string GetTitle()
         {
-            return id + "    " + date.ToString("yyyy-MM-dd") + "    " + date.ToString("HH:mm");
+            return id.PadRight(10) + "  " + date.ToString("yyyy-MM-dd") + "   " + date.ToString("HH:mm");
         }
 
         public string GetUUID()

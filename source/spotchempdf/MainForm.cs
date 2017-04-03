@@ -4,11 +4,14 @@ using System.IO;
 using System.IO.Ports;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Drawing;
 
 using System.Runtime.CompilerServices;
 using System.Threading;
 using log4net;
 using log4net.Config;
+
+using System.Deployment.Application;
 
 
 
@@ -61,6 +64,8 @@ namespace spotchempdf
             InitializeComponent();
             lstReadings.Items.Clear();
 
+            this.Text = "SpotchemPDF "+PublishedVersion;
+
             // create application folders
             cfg.createFolders();
 
@@ -71,7 +76,7 @@ namespace spotchempdf
             else
                 BasicConfigurator.Configure();
 
-            log.Info("********** Starting SpotchemPDF ********************** ");
+            log.Info("********** Starting SpotchemPDF "+PublishedVersion);
 
             // if none exist, create range configuration file
             if (!File.Exists(cfg.configFolder + @"\" + cfg.rangesConfigFile))
@@ -99,6 +104,20 @@ namespace spotchempdf
 
             LoadReadings(cfg.readingsFolder);
 
+        }
+
+        public string PublishedVersion
+        {
+            get
+            {
+                if (System.Deployment.Application.ApplicationDeployment.IsNetworkDeployed)
+                {
+                    Version ver = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion;
+                    return string.Format("{0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
+                }
+                else
+                    return "Not Published";
+            }
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
@@ -237,6 +256,7 @@ namespace spotchempdf
                     log.Info("Received " + lrd.Count + " readings.");
                     receivedCount += lrd.Count;
 
+                    /*
                     if (this.rcvCount.InvokeRequired)
                     {
                         this.rcvCount.BeginInvoke((MethodInvoker)delegate () { this.rcvCount.Text = this.receivedCount.ToString(); ; });
@@ -244,8 +264,8 @@ namespace spotchempdf
                     else
                     {
                         this.rcvCount.Text = this.receivedCount.ToString(); ;
-                    }
-                    //this.rcvCount.Text = receivedCount.ToString();
+                    }*/
+                    this.rcvCount.Text = receivedCount.ToString();
                     this.rcvCount.Invalidate();
 
                     // save parsed readings
@@ -259,7 +279,7 @@ namespace spotchempdf
             }
         }
 
-        private void btnChangePDFPath(object sender, EventArgs e)
+        private void changePDFPath()
         {
             log.Debug("Opening output folder selection dialog.");
             frmFlbBrowse.Description = "Vyber priečinok pre PDF súbory";
@@ -270,7 +290,6 @@ namespace spotchempdf
             cfg.Save();
             log.Info("Output folder changed. New=" + cfg.outputFolder);
         }
-
 
         private void btnCreateFake_Click(object sender, EventArgs e)
         {
@@ -298,15 +317,22 @@ namespace spotchempdf
         public void updateSerialStatus()
         {
             if (sr.isOpen())
+            {
+                lblConnStatus.ForeColor = SystemColors.Highlight;
                 lblConnStatus.Text = "OK";
+
+            }
             else
+            {
+                lblConnStatus.ForeColor = Color.Red;
                 lblConnStatus.Text = "Chyba";
+            }
 
             lblConnStatus.Text += " (" + sr.getStatusString() + ")";
 
         }
 
-        private void btnConfigSerial_Click(object sender, EventArgs e)
+        private void configureSerialPort()
         {
             log.Debug("Opening serial port configuration window.");
             frmSerialSettings frmPortSet = new frmSerialSettings(cfg.comPort);
@@ -333,10 +359,10 @@ namespace spotchempdf
                 sr.OpenSerial(cfg.comPort);
 
                 updateSerialStatus();
-                
-            }
 
+            }
         }
+
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -451,6 +477,21 @@ namespace spotchempdf
         private void timer1_Tick(object sender, EventArgs e)
         {
             saveUpdates();
+        }
+
+        private void changeSerialPortMenuItem_Click(object sender, EventArgs e)
+        {
+            configureSerialPort();
+        }
+
+        private void changeOutputFolderMenutItem_Click(object sender, EventArgs e)
+        {
+            changePDFPath();
+        }
+
+        private void loadReadingsMenuItem_Click(object sender, EventArgs e)
+        {
+            LoadReadings(cfg.readingsFolder);
         }
     }
 }

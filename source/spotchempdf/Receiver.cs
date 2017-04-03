@@ -75,7 +75,7 @@ namespace spotchempdf
 
         public string getStatusString()
         {
-            return sp.PortName + ":" + sp.BaudRate + "-" + sp.DataBits +sp.Parity.ToString()[0] + "-" + sp.StopBits;
+            return sp.PortName + " = " + sp.BaudRate + "-" + sp.DataBits +sp.Parity.ToString()[0] + "-" + sp.StopBits;
         }
 
         public void Close()
