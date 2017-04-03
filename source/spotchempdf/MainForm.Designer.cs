@@ -56,6 +56,7 @@
             this.changeSerialPortMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.changeOutputFolderMenutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadReadingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.providerDetailsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -292,7 +293,8 @@
             // 
             this.settingsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.changeSerialPortMenuItem,
-            this.changeOutputFolderMenutItem});
+            this.changeOutputFolderMenutItem,
+            this.providerDetailsMenuItem});
             this.settingsMenuItem.Name = "settingsMenuItem";
             this.settingsMenuItem.Size = new System.Drawing.Size(77, 20);
             this.settingsMenuItem.Text = "&Nastavenia";
@@ -300,14 +302,14 @@
             // changeSerialPortMenuItem
             // 
             this.changeSerialPortMenuItem.Name = "changeSerialPortMenuItem";
-            this.changeSerialPortMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.changeSerialPortMenuItem.Size = new System.Drawing.Size(181, 22);
             this.changeSerialPortMenuItem.Text = "Nastav &spojenie";
             this.changeSerialPortMenuItem.Click += new System.EventHandler(this.changeSerialPortMenuItem_Click);
             // 
             // changeOutputFolderMenutItem
             // 
             this.changeOutputFolderMenutItem.Name = "changeOutputFolderMenutItem";
-            this.changeOutputFolderMenutItem.Size = new System.Drawing.Size(157, 22);
+            this.changeOutputFolderMenutItem.Size = new System.Drawing.Size(181, 22);
             this.changeOutputFolderMenutItem.Text = "Zmeň ú&ložisko";
             this.changeOutputFolderMenutItem.Click += new System.EventHandler(this.changeOutputFolderMenutItem_Click);
             // 
@@ -317,6 +319,13 @@
             this.loadReadingsMenuItem.Size = new System.Drawing.Size(102, 20);
             this.loadReadingsMenuItem.Text = "N&ačítaj merania";
             this.loadReadingsMenuItem.Click += new System.EventHandler(this.loadReadingsMenuItem_Click);
+            // 
+            // providerDetailsMenuItem
+            // 
+            this.providerDetailsMenuItem.Name = "providerDetailsMenuItem";
+            this.providerDetailsMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.providerDetailsMenuItem.Text = "Údaje &poskytovateľa";
+            this.providerDetailsMenuItem.Click += new System.EventHandler(this.providerDetailsMenuItem_Click);
             // 
             // FrmMain
             // 
@@ -383,6 +392,7 @@
         private System.Windows.Forms.ToolStripMenuItem changeSerialPortMenuItem;
         private System.Windows.Forms.ToolStripMenuItem changeOutputFolderMenutItem;
         private System.Windows.Forms.ToolStripMenuItem loadReadingsMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem providerDetailsMenuItem;
     }
 }
 

@@ -335,26 +335,26 @@ namespace spotchempdf
         private void configureSerialPort()
         {
             log.Debug("Opening serial port configuration window.");
-            frmSerialSettings frmPortSet = new frmSerialSettings(cfg.comPort);
+            frmSerialSettings frm = new frmSerialSettings(cfg.comPort);
 
             // set saved window coordinates
-            frmPortSet.Location = new System.Drawing.Point(cfg.portSetWindow.x, cfg.portSetWindow.y);
+            frm.Location = new System.Drawing.Point(cfg.portSetWindow.x, cfg.portSetWindow.y);
 
             // configure using current parameters
-            frmPortSet.setParams(cfg.comPort.name, cfg.comPort.baudRate);
+            frm.setParams(cfg.comPort.name, cfg.comPort.baudRate);
 
-            frmPortSet.ShowDialog();
+            frm.ShowDialog();
 
             // remember changed window location
-            cfg.portSetWindow.x = frmPortSet.Location.X;
-            cfg.portSetWindow.y = frmPortSet.Location.Y;
+            cfg.portSetWindow.x = frm.Location.X;
+            cfg.portSetWindow.y = frm.Location.Y;
 
-            if (frmPortSet.OKclicked && frmPortSet.getPortName().Length > 0)
+            if (frm.OKclicked && frm.getPortName().Length > 0)
             {
-                cfg.comPort.name = frmPortSet.getPortName();
+                cfg.comPort.name = frm.getPortName();
                 log.Info("Serial port changed to " + cfg.comPort.name);
 
-                cfg.comPort.baudRate = frmPortSet.getBaudRate();
+                cfg.comPort.baudRate = frm.getBaudRate();
 
                 cfg.Save();
                 log.Debug("Configuration saved.");
@@ -364,6 +364,31 @@ namespace spotchempdf
                 sr.OpenSerial(cfg.comPort);
 
                 updateSerialStatus();
+
+            }
+        }
+
+        private void changeProviderDetails()
+        {
+            log.Debug("Opening provider details configuration window.");
+            frmProviderAddress frm = new frmProviderAddress();
+
+            // set saved window coordinates
+            frm.Location = new System.Drawing.Point(cfg.providerDetailsWindow.x, cfg.providerDetailsWindow.y);
+            frm.setData(cfg.provider);
+
+            frm.ShowDialog();
+
+            cfg.providerDetailsWindow.x = frm.Location.X;
+            cfg.providerDetailsWindow.y = frm.Location.Y;
+
+            if (frm.DialogResult == DialogResult.OK)
+            {
+                log.Debug("Provider details changed.");
+                frm.getData(out cfg.provider);
+
+                cfg.Save();
+                log.Debug("Configuration saved.");
 
             }
         }
@@ -497,6 +522,11 @@ namespace spotchempdf
         private void loadReadingsMenuItem_Click(object sender, EventArgs e)
         {
             LoadReadings(cfg.readingsFolder);
+        }
+
+        private void providerDetailsMenuItem_Click(object sender, EventArgs e)
+        {
+            changeProviderDetails();
         }
     }
 }

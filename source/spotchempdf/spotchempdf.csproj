@@ -118,6 +118,12 @@
   <ItemGroup>
     <Compile Include="Config.cs" />
     <Compile Include="BufferProcessor.cs" />
+    <Compile Include="ProviderAddress.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProviderAddress.Designer.cs">
+      <DependentUpon>ProviderAddress.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -137,6 +143,9 @@
     <Compile Include="Receiver.cs" />
     <Compile Include="PDFWriter.cs" />
     <Compile Include="XMLFile.cs" />
+    <EmbeddedResource Include="ProviderAddress.resx">
+      <DependentUpon>ProviderAddress.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
