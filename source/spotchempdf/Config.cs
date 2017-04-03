@@ -111,6 +111,7 @@ namespace spotchempdf
             string cfgFile = configFolder + @"\" + configFile;
             log.Debug("Saving configuration to " + cfgFile);
             string content = this.toJSON();
+            Directory.CreateDirectory(configFolder);
             using (StreamWriter outputFile = new StreamWriter(cfgFile))
             {
                 outputFile.WriteAsync(content);
