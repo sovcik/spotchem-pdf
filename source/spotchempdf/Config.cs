@@ -6,6 +6,18 @@ using log4net;
 
 namespace spotchempdf
 {
+    public class Provider
+    {
+        public string name { get; set; } = "";
+        public string address1 { get; set; } = "";
+        public string address2 { get; set; } = "";
+        public string address3 { get; set; } = "";
+        public string address4 { get; set; } = "";
+        public string contact1 { get; set; } = "";
+        public string contact2 { get; set; } = "";
+
+    }
+
     public class window
     {
         public int x = 200;
@@ -54,6 +66,8 @@ namespace spotchempdf
 
         public window mainWindow = new window(200, 200);
         public window portSetWindow = new window(250, 250);
+
+        public Provider provider = new Provider();
 
         public Config()
         {
