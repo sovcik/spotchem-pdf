@@ -213,7 +213,7 @@ namespace spotchempdf
         {
             Random r = new Random(randomSeed);
             Reading rd;
-            ReadingRanges ranges = ReadingRanges.createFake();
+            ReadingRanges ranges = ReadingRanges.createDefaults();
             string[] tests = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK" };
             int i;
 
@@ -319,6 +319,25 @@ namespace spotchempdf
                         break;
                 }
                 off += 22;
+                if (off+1 < msg.Length && msg[off+1] == Reading.ASCII_ETB)
+                {
+                    log.Info("ETB found");
+                    off++;
+                    if (off + 1 < msg.Length && msg[off + 1] == Reading.ASCII_STX)
+                    {
+                        log.Info("STX found");
+                        off++;
+                        // skip header (necessary data has been already read)
+                        if (off+22 < msg.Length)
+                            off += 22;
+                        else
+                        {
+                            log.Error("Incomplete message.");
+                            off = msg.Length;
+                        }
+                    }
+                }
+                    
             }
 
             lrd.Add(rd);
