@@ -80,7 +80,7 @@ namespace spotchempdf
 
             // if none exist, create range configuration file
             if (!File.Exists(cfg.configFolder + @"\" + cfg.rangesConfigFile))
-                readingRanges.SaveFakeRanges(cfg.configFolder + @"\" + cfg.rangesConfigFile);
+                readingRanges.SaveDefaultRanges(cfg.configFolder + @"\" + cfg.rangesConfigFile);
 
             readingRanges = ReadingRanges.Load(cfg.configFolder + @"\" + cfg.rangesConfigFile);
 
@@ -247,7 +247,7 @@ namespace spotchempdf
 
                     // save raw data
                     string s = cfg.readingsFolder + @"\" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")+".txt";
-                    log.Debug("Saving raw data to " + s);
+                    log.Debug("Saving "+(i+1)+" bytes of raw data to " + s);
                     File.WriteAllBytes(s, m);
 
                     // parse data to readings
