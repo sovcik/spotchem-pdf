@@ -32,17 +32,19 @@ namespace spotchempdf
 
         public Dictionary<string, Range> ranges { get; set; } = new Dictionary<string, Range>();
 
-        public static ReadingRanges createFake()
+        public static ReadingRanges createDefaults()
         {
-            ReadingRanges rr = new ReadingRanges();
-            rr.Add("RBC", (float)5.65,(float)8.87,"x10^12/L");
-            rr.Add("HCT", (float)37.3, (float)61.7,"%");
-            rr.Add("HGB", (float)13.1, (float)20.5,"g/dL");
-            rr.Add("MCV", (float)61.6, (float)73.5,"fL");
-            rr.Add("MCH", (float)21.2, (float)25.9,"pg");
-            rr.Add("MCHC", (float)32.0, (float)37.9,"g/dL");
-            rr.Add("RDW", (float)13.6, (float)21.7,"%");
+            log.Debug("Adding default ranges");
 
+            ReadingRanges rr = new ReadingRanges();
+                                                                         // Values for DOGS
+            rr.Add("BUN", (float)2.4989999, (float)8.568, "mmol/L");     // Blood Urea Nitrogen: 7-24 mg/dL -> 2.4989999-8.568 mmol/L
+            rr.Add("Glu", (float)4.44, (float)6.66, "mmol/L");           // Glucose: 80-120 g/dL -> 4.44-6.66 mmol/L
+            rr.Add("ALP", (float)0.0510, (float)1.190, "µkat/L");        // Alkaline Phosphatase: 3-70 U/L
+            rr.Add("T-Pro", (float)54, (float)80, "g/L");                // Total Protein: 5.4-8 g/dL
+            rr.Add("GPT", (float)0.068, (float)1.53, "µkat/L");          // Alanine transaminase or glutamate pyruvate transaminase ALT/GPT: 4-90 U/L
+            rr.Add("Cre", (float)61.88, (float)123.76, "µmol/L");        // Creatinine: 0.7-1.4 mg/dL
+            rr.Add("Ca",  (float)2.25, (float)2.85, "mmol/L");           // Ca2+: 9-11.4 mg/dL
             return rr;
         }
 
@@ -53,7 +55,10 @@ namespace spotchempdf
 
         public void Add(string name, float min, float max, string unit)
         {
-            ranges.Add(name, new Range(min, max, unit));
+            if (!ranges.ContainsKey(name))
+                ranges.Add(name, new Range(min, max, unit));
+            else
+                log.Debug("Range " + name + " is already in the list.");
         }
 
         public static ReadingRanges FromJSON(string json)
@@ -83,10 +88,10 @@ namespace spotchempdf
             return rr;
         }
 
-        public void SaveFakeRanges(string fileName)
+        public void SaveDefaultRanges(string fileName)
         {
             log.Debug("Creating fake ranges to "+fileName);
-            ReadingRanges rr = ReadingRanges.createFake();
+            ReadingRanges rr = ReadingRanges.createDefaults();
             log.Debug("Saving fake ranges to " + fileName);
             rr.Save(fileName);
 
