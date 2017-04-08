@@ -80,7 +80,7 @@ namespace spotchempdf
 
             // if none exist, create range configuration file
             if (!File.Exists(cfg.configFolder + @"\" + cfg.rangesConfigFile))
-                readingRanges.SaveDefaultRanges(cfg.configFolder + @"\" + cfg.rangesConfigFile);
+                readingRanges.SaveDefaults(cfg.configFolder + @"\" + cfg.rangesConfigFile);
 
             readingRanges = ReadingRanges.Load(cfg.configFolder + @"\" + cfg.rangesConfigFile);
 
@@ -156,6 +156,34 @@ namespace spotchempdf
 
         }
 
+        private void SaveReadingToPDF(Reading r, string fileName, RangeType rangeType)
+        {
+            // save reading to PDF
+            string s = pdfw.savePDF(r, fileName, cfg.openPDFAfterSave, cfg.provider, rangeType);
+            log.Info("SavePDF: Reading(" + r.GetUUID() + ") saved to file=" + s);
+
+            // move reading to archive
+            s = readingsList.Find(x => x.Id == r.GetUUID()).FName;
+            s = Path.GetFileName(s);
+            string sa = s;
+            if (File.Exists(cfg.archiveFolder + @"\" + s))
+            {
+                log.Debug("Reading already archived. Adding version.");
+                int sfx = 0;
+                while (File.Exists(s + "." + sfx)) sfx++;
+                sa = s + "." + sfx;
+            }
+            try
+            {
+                File.Move(cfg.readingsFolder + @"\" + s, cfg.archiveFolder + @"\" + sa);
+                log.Info("Reading file=" + s + " moved to file=" + cfg.archiveFolder + @"\" + sa);
+            }
+            catch (IOException ex)
+            {
+                log.Warn("SavePDF: Error while moving file to archve folder. " + ex.Message);
+            }
+        }
+
 
         private void btnSavePDF_Click(object sender, EventArgs e)
         {
@@ -172,29 +200,14 @@ namespace spotchempdf
                 log.Warn("SavePDF: Unable to find reading UUID=" + lstReadings.SelectedValue.ToString());
             else
             {
-                // save reading to PDF
-                s = pdfw.savePDF(r, cfg.outputFolder + @"\" + r.GetUUID(), cfg.openPDFAfterSave, cfg.provider);
-                log.Info("SavePDF: Reading(" + r.GetUUID() + ") saved to file=" + s);
+                RangeType rt;
+                if (!readingRanges.rangeTypes.TryGetValue(r.animalType, out rt))
+                {
+                    log.Info("Ranges not found for animal type = " + r.animalType);
+                    rt = new RangeType();
+                }
 
-                // move reading to archive
-                s = readingsList.Find(x => x.Id == r.GetUUID()).FName;
-                s = Path.GetFileName(s);
-                string sa = s;
-                if (File.Exists(cfg.archiveFolder + @"\" + s))
-                {
-                    log.Debug("Reading already archived. Adding version.");
-                    int sfx = 0;
-                    while (File.Exists(s + "." + sfx)) sfx++;
-                    sa = s + "." + sfx;
-                }
-                try
-                {
-                    File.Move(cfg.readingsFolder + @"\" + s, cfg.archiveFolder + @"\" + sa);
-                    log.Info("Reading file=" + s + " moved to file=" + cfg.archiveFolder + @"\" + sa);
-                } catch (IOException ex)
-                {
-                    log.Warn("SavePDF: Error while moving file to archve folder. " + ex.Message);
-                }
+                SaveReadingToPDF(r, cfg.outputFolder + @"\" + r.GetUUID(),rt);
 
                 // remove reading from the list
                 LoadReadings(cfg.readingsFolder);
@@ -256,15 +269,7 @@ namespace spotchempdf
                     log.Info("Received " + lrd.Count + " readings.");
                     receivedCount += lrd.Count;
 
-                    /*
-                    if (this.rcvCount.InvokeRequired)
-                    {
-                        this.rcvCount.BeginInvoke((MethodInvoker)delegate () { this.rcvCount.Text = this.receivedCount.ToString(); ; });
-                    }
-                    else
-                    {
-                        this.rcvCount.Text = this.receivedCount.ToString(); ;
-                    }*/
+                    // show number of received messages
                     this.rcvCount.Text = receivedCount.ToString();
                     this.rcvCount.Invalidate();
 
@@ -294,7 +299,7 @@ namespace spotchempdf
         private void btnCreateFake_Click(object sender, EventArgs e)
         {
             log.Info("Creating fake readings.");
-            Reading.CreateFakeReadings(5,cfg.readingsFolder);
+            //Reading.CreateFakeReadings(5,cfg.readingsFolder);
             LoadReadings(cfg.readingsFolder);
         }
 
@@ -393,6 +398,24 @@ namespace spotchempdf
             }
         }
 
+        private void editRanges()
+        {
+            log.Debug("Opening edit ranges window");
+            frmEditRanges frm = new frmEditRanges(cfg.configFolder+@"\"+cfg.rangesConfigFile);
+
+            // set saved window coordinates
+            frm.Location = new System.Drawing.Point(cfg.editRangesWindow.x, cfg.editRangesWindow.y);
+
+            frm.ShowDialog();
+
+            cfg.editRangesWindow.x = frm.Location.X;
+            cfg.editRangesWindow.y = frm.Location.Y;
+
+            cfg.Save();
+            log.Debug("Configuration saved.");
+
+        }
+
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -427,12 +450,16 @@ namespace spotchempdf
 
                         loadedReadings[key].clientId = selectedReading.clientId;
                         loadedReadings[key].clientName = selectedReading.clientName;
+                        loadedReadings[key].animalType = selectedReading.animalType;
                         loadedReadings[key].animalName = selectedReading.animalName;
+                        loadedReadings[key].animalAge = selectedReading.animalAge;
                         loadedReadings[key].Save(cfg.readingsFolder);
 
                         selectedReading.clientId = clientId.Text;
                         selectedReading.clientName = clientName.Text;
                         selectedReading.animalName = animalName.Text;
+                        selectedReading.animalType = animalType.Text;
+                        selectedReading.animalAge = int.Parse(animalAge.Text);
 
                     }
 
@@ -460,13 +487,21 @@ namespace spotchempdf
             {
                 selectedReading = null;
                 log.Info("UpdateSelected: List of readings is empty or nothing is selected. count="+lstReadings.Items.Count + " selected="+lstReadings.SelectedIndex);
+
                 clientId.Enabled = false;
                 clientName.Enabled = false;
+
                 animalName.Enabled = false;
+                animalAge.Enabled = false;
+                animalType.Enabled = false;
+
                 btnSave.Enabled = false;
+
                 clientId.Text = "";
                 clientName.Text = "";
                 animalName.Text = "";
+                animalType.Text = "";
+                animalAge.Text = "";
 
                 return;
             }
@@ -479,12 +514,18 @@ namespace spotchempdf
 
                 clientId.Enabled = true;
                 clientName.Enabled = true;
+
                 animalName.Enabled = true;
+                animalAge.Enabled = true;
+                animalType.Enabled = true;
+
                 btnSave.Enabled = true;
 
                 clientId.Text = selectedReading.clientId;
                 clientName.Text = selectedReading.clientName;
                 animalName.Text = selectedReading.animalName;
+                animalType.Text = selectedReading.animalType;
+                animalAge.Text = selectedReading.animalAge.ToString();
 
             }
             catch (KeyNotFoundException)
@@ -493,6 +534,8 @@ namespace spotchempdf
                 clientId.Text = "";
                 clientName.Text = "";
                 animalName.Text = "";
+                animalType.Text = "";
+                animalAge.Text = "";
 
             }
 
@@ -527,6 +570,11 @@ namespace spotchempdf
         private void providerDetailsMenuItem_Click(object sender, EventArgs e)
         {
             changeProviderDetails();
+        }
+
+        private void editRangesMenuItem_Click(object sender, EventArgs e)
+        {
+            editRanges();
         }
     }
 }

@@ -67,6 +67,7 @@ namespace spotchempdf
         public window mainWindow = new window(200, 200);
         public window portSetWindow = new window(250, 250);
         public window providerDetailsWindow = new window(250, 250);
+        public window editRangesWindow = new window(250, 250);
 
         public Provider provider = new Provider();
 

@@ -42,7 +42,7 @@ namespace spotchempdf
             this.ranges = ranges;
         }
 
-        public string savePDF(Reading rd, string pdfFileName, bool OpenAfterSave, Provider provider)
+        public string savePDF(Reading rd, string pdfFileName, bool OpenAfterSave, Provider provider, RangeType rangeType)
         {
             XPen pen = XPens.Black;
 
@@ -81,13 +81,15 @@ namespace spotchempdf
             y = topMargin;
             graph.DrawString("Dátum: " + rd.date.ToShortDateString()+"   "+rd.date.ToShortTimeString(), font, brush, x, y);
 
-            // client details
+            // client/animal details
             y += 2*17;
             graph.DrawString("Id: " + rd.id, font, brush, x, y);
             y += 17;
-            graph.DrawString("Zviera: "+rd.animalName, font, brush, x, y);
+            graph.DrawString("Klient: (" + rd.clientId + ") " + rd.clientName, font, brush, x, y);
             y += 17;
-            graph.DrawString("Klient: (" + rd.clientId+") "+rd.clientName, font, brush, x, y);
+            graph.DrawString("Typ zvieraťa: " + rd.animalType, font, brush, x, y);
+            y += 17;
+            graph.DrawString("Zviera: "+rd.animalName+"  vek="+rd.animalAge, font, brush, x, y);
 
 
             // table column names
@@ -113,7 +115,7 @@ namespace spotchempdf
             int i = 0;
             while (ie.MoveNext()) { 
                 Range r = new Range();
-                ranges.ranges.TryGetValue(ie.Current.Value.name, out r);
+                rangeType.ranges.TryGetValue(ie.Current.Value.name, out r);
                 if (r == null) r = new Range(ie.Current.Value.value, ie.Current.Value.value,"x");
                 if (ie.Current.Value.error == null || ie.Current.Value.error.Length == 0)
                     writeTableRow(false, y + i * tRowHeight, ie.Current.Value.name, ie.Current.Value.value.ToString()+" "+ie.Current.Value.unit, r, ie.Current.Value.value);

@@ -118,6 +118,8 @@ namespace spotchempdf
         public string clientId { get; set; } = "";
         public string clientName { get; set; } = "";
         public string animalName { get; set; } = "";
+        public int animalAge { get; set; } = 0;
+        public string animalType { get; set; } = "";
 
         private static Object FileWriteLock = new Object();
 
@@ -153,17 +155,17 @@ namespace spotchempdf
 
         override public string ToString()
         {
-            return id + " " + date.ToString("yyyyMMdd") + " " + date.ToString("HH:mm") + " " + multiName;
+            return "id="+id + " date=" + date.ToString("yyyyMMdd") + " time=" + date.ToString("HH:mm") + " multi=" + multiName;
         }
 
         public string GetTitle()
         {
-            return id.PadRight(10) + "  " + date.ToString("yyyy-MM-dd") + "   " + date.ToString("HH:mm");
+            return date.ToString("yyyy-MM-dd") + "   " + date.ToString("HH:mm") + "    " + id;
         }
 
         public string GetUUID()
         {
-            return id + "-" + date.ToString("yyyyMMdd") + "-" + date.ToString("HHmm");
+            return date.ToString("yyyyMMdd") + "-" + date.ToString("HHmm") + "-" + id;
         }
 
 
@@ -209,6 +211,7 @@ namespace spotchempdf
 
         }
 
+        /*
         public static Reading GetFake(int randomSeed)
         {
             Random r = new Random(randomSeed);
@@ -246,6 +249,7 @@ namespace spotchempdf
                 rd.Save(folder);
             }
         }
+        */
 
         private static string b2S(byte[] b, int indexFrom, int count)
         {

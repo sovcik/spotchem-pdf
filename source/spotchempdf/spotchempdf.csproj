@@ -118,6 +118,12 @@
   <ItemGroup>
     <Compile Include="Config.cs" />
     <Compile Include="BufferProcessor.cs" />
+    <Compile Include="RangesEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RangesEdit.Designer.cs">
+      <DependentUpon>RangesEdit.cs</DependentUpon>
+    </Compile>
     <Compile Include="ProviderAddress.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -143,6 +149,9 @@
     <Compile Include="Receiver.cs" />
     <Compile Include="PDFWriter.cs" />
     <Compile Include="XMLFile.cs" />
+    <EmbeddedResource Include="RangesEdit.resx">
+      <DependentUpon>RangesEdit.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ProviderAddress.resx">
       <DependentUpon>ProviderAddress.cs</DependentUpon>
     </EmbeddedResource>
