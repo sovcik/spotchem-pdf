@@ -80,8 +80,6 @@
             // typeRanges
             // 
             this.typeRanges.FormattingEnabled = true;
-            this.typeRanges.Items.AddRange(new object[] {
-            "ALT  0.678-1.345  mmol/L"});
             this.typeRanges.Location = new System.Drawing.Point(16, 67);
             this.typeRanges.Name = "typeRanges";
             this.typeRanges.Size = new System.Drawing.Size(167, 147);
@@ -99,6 +97,7 @@
             // 
             // rangeMax
             // 
+            this.rangeMax.Enabled = false;
             this.rangeMax.Location = new System.Drawing.Point(253, 122);
             this.rangeMax.MaxLength = 10;
             this.rangeMax.Name = "rangeMax";
@@ -117,6 +116,7 @@
             // 
             // rangeMin
             // 
+            this.rangeMin.Enabled = false;
             this.rangeMin.Location = new System.Drawing.Point(253, 96);
             this.rangeMin.MaxLength = 10;
             this.rangeMin.Name = "rangeMin";
@@ -135,6 +135,7 @@
             // 
             // rangeUnit
             // 
+            this.rangeUnit.Enabled = false;
             this.rangeUnit.Location = new System.Drawing.Point(253, 149);
             this.rangeUnit.MaxLength = 10;
             this.rangeUnit.Name = "rangeUnit";
@@ -163,6 +164,7 @@
             // 
             // deleteRange
             // 
+            this.deleteRange.Enabled = false;
             this.deleteRange.Location = new System.Drawing.Point(108, 220);
             this.deleteRange.Name = "deleteRange";
             this.deleteRange.Size = new System.Drawing.Size(75, 37);
@@ -192,6 +194,7 @@
             // 
             // rangeName
             // 
+            this.rangeName.Enabled = false;
             this.rangeName.Location = new System.Drawing.Point(253, 67);
             this.rangeName.MaxLength = 10;
             this.rangeName.Name = "rangeName";
