@@ -132,8 +132,12 @@ namespace spotchempdf
             {
                 Reading rd = Reading.fromJSONFile(file);
                 if (loadedReadings.TryAdd(rd.GetUUID(), rd))
+                {
                     //readingsList.Add(new { Id = rd.GetUUID(), Name = rd.GetTitle(), FName = file });
-                    readingsList.Add(new { testReading = rd.GetUUID(), testTitle = rd.GetTitle(), testFile = file });
+                    readingsList.Add(new { UUID = rd.GetUUID(), title = rd.GetTitle(), fname = file });
+                    //readingsList.TryAdd(rd.GetUUID(), rd.GetTitle());
+                    log.Debug("Adding reading: UUID=" + rd.GetUUID() + " Title=" + rd.GetTitle());
+                }
                 else
                     log.Warn("Failed to load reading " + rd.GetTitle());
 
@@ -142,9 +146,9 @@ namespace spotchempdf
             lstReadings.DataSource = null;
             if (readingsList.Count > 0)
             {
-                lstReadings.DataSource = readingsList;
-                lstReadings.DisplayMember = "testTitle";
-                lstReadings.ValueMember = "testReading";
+                lstReadings.DataSource = (IList<dynamic>)readingsList;
+                lstReadings.DisplayMember = "title";
+                lstReadings.ValueMember = "UUID";
             }
 
             lstReadings.Invalidate();
@@ -160,10 +164,10 @@ namespace spotchempdf
         {
             // save reading to PDF
             string s = pdfw.savePDF(r, fileName, cfg.openPDFAfterSave, cfg.provider, rangeType);
-            log.Info("SavePDF: Reading(" + r.GetUUID() + ") saved to file=" + s);
+            log.Info("SavePDF: Reading(" + r.GetUUID() + ") saving to file=" + s);
 
             // move reading to archive
-            s = readingsList.Find(x => x.Id == r.GetUUID()).FName;
+            s = readingsList.Find(x => x.UUID == r.GetUUID()).fname;
             s = Path.GetFileName(s);
             string sa = s;
             if (File.Exists(cfg.archiveFolder + @"\" + s))
@@ -196,12 +200,12 @@ namespace spotchempdf
 
             log.Debug("Going to save " + lstReadings.SelectedItem + " value=" + lstReadings.SelectedValue);
             // get selected item
-            //String s = lstReadings.SelectedItem.ToString();
-            //if (!loadedReadings.TryGetValue(lstReadings.SelectedValue.ToString(), out r))
-            //    log.Warn("SavePDF: Unable to find reading UUID=" + lstReadings.SelectedValue.ToString());
-            //else
-            //{
-            r = (Reading)lstReadings.SelectedValue;
+            
+            String s = lstReadings.SelectedItem.ToString();
+            if (!loadedReadings.TryGetValue(lstReadings.SelectedValue.ToString(), out r))
+                log.Warn("SavePDF: Unable to find reading UUID=" + lstReadings.SelectedValue.ToString());
+            else
+            {
                 RangeType rt;
                 if (!readingRanges.rangeTypes.TryGetValue(r.animalType, out rt))
                 {
@@ -213,7 +217,7 @@ namespace spotchempdf
 
                 // remove reading from the list
                 LoadReadings(cfg.readingsFolder);
-            //}
+            }
 
         }
 
@@ -574,7 +578,7 @@ namespace spotchempdf
 
         private void lstReadings_SelectedIndexChanged(object sender, EventArgs e)
         {
-            log.Debug("Selected reading=" + lstReadings.SelectedItem);
+            log.Debug("Selected reading=" + lstReadings.SelectedItem+" value="+lstReadings.SelectedValue);
 
             //saveUpdates();
             updateSelectedReading();
