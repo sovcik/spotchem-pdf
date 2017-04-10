@@ -44,7 +44,11 @@ namespace spotchempdf
             rr.Add("T-Pro", (float)54, (float)80, "g/L");                // Total Protein: 5.4-8 g/dL
             rr.Add("GPT", (float)0.068, (float)1.53, "µkat/L");          // Alanine transaminase or glutamate pyruvate transaminase ALT/GPT: 4-90 U/L
             rr.Add("Cre", (float)61.88, (float)123.76, "µmol/L");        // Creatinine: 0.7-1.4 mg/dL
-            rr.Add("Ca", (float)2.25, (float)2.85, "mmol/L");           // Ca2+: 9-11.4 mg/dL
+            rr.Add("Ca", (float)2.25, (float)2.85, "mmol/L");            // Ca2+: 9-11.4 mg/dL
+            rr.Add("MCH", (float)0, (float)0, "pg");                     // 
+            rr.Add("RBC", (float)0, (float)0, "x10^12L");                // 
+            rr.Add("HCT", (float)0, (float)0, "%");                      //
+            rr.Add("MCV", (float)0, (float)0, "fl");                     //
             return rr;
         }
 
@@ -109,7 +113,7 @@ namespace spotchempdf
         {
             log.Debug("Creating default ranges to "+fileName);
             ReadingRanges rr = new ReadingRanges();
-            rr.Add("Dog", RangeType.createDefaults());
+            rr.Add("Pes", RangeType.createDefaults());
             log.Debug("Saving default ranges to " + fileName);
             rr.Save(fileName);
 
