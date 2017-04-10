@@ -87,7 +87,7 @@ namespace spotchempdf
             y += 17;
             graph.DrawString("Klient: (" + rd.clientId + ") " + rd.clientName, font, brush, x, y);
             y += 17;
-            graph.DrawString("Typ zvieraťa: " + rd.animalType, font, brush, x, y);
+            graph.DrawString("Druh zvieraťa: " + rd.animalType, font, brush, x, y);
             y += 17;
             graph.DrawString("Zviera: "+rd.animalName+"  vek="+rd.animalAge, font, brush, x, y);
 
