@@ -23,25 +23,47 @@ namespace spotchempdf
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(FrmMain));
 
-        ConcurrentDictionary<string, Reading> loadedReadings = new ConcurrentDictionary<string, Reading>();
-        Random r = new Random();
-
+        // object containing loaded configuration
         Config cfg = new Config();
 
-        ReadingRanges readingRanges = new ReadingRanges();
-
-        byte[] spBuffer = new byte[1024];
-        int spBOffset = 0;
-
-        List<dynamic> readingsList = new List<dynamic>();
-        Reading selectedReading;
-        bool readingUpdated;
-        Object updateLock = new Object();
-
+        // PDF writer object
         PDFWriter pdfw;
+
+        // initialize random number generator
+        Random r = new Random();
+
+        // serial port receiver
         SerialReceiver sr = new SerialReceiver();
 
+        // buffer for data received via serial port
+        byte[] spBuffer = new byte[1024];
+
+        // current position in spBuffer
+        int spBOffset = 0;
+
+        // count of readings received via serial port
         int receivedCount = 0;
+
+
+        // dictionary containing all loaded readings
+        ConcurrentDictionary<string, Reading> loadedReadings = new ConcurrentDictionary<string, Reading>();
+
+        // list used to show loaded readings on the screen - it has to be synchronized with loadedReadings
+        List<dynamic> readingsList = new List<dynamic>();
+        
+        // object containing data of reading selected in readingList
+        Reading selectedReading;
+
+        // true if reading has been updated, e.g. animal name has been entered
+        bool readingUpdated;
+
+        // locking object for saving updated reading
+        Object updateLock = new Object();
+
+
+        // object containng all available reading ranges for all types of animals
+        ReadingRanges readingRanges = new ReadingRanges();
+
 
         public FrmMain()
         {
@@ -60,8 +82,11 @@ namespace spotchempdf
                 cfg.Save();
             }
 
+            // restore window position
             this.Location = new System.Drawing.Point(cfg.mainWindow.x, cfg.mainWindow.y);
             InitializeComponent();
+
+            // clear listbox showing readings
             lstReadings.Items.Clear();
 
             this.Text = "SpotchemPDF "+PublishedVersion;
@@ -82,10 +107,11 @@ namespace spotchempdf
             if (!File.Exists(cfg.configFolder + @"\" + cfg.rangesConfigFile))
                 readingRanges.SaveDefaults(cfg.configFolder + @"\" + cfg.rangesConfigFile);
 
+            // load reading ranges for different types of animals
             readingRanges = ReadingRanges.Load(cfg.configFolder + @"\" + cfg.rangesConfigFile);
             reloadAnimalTypes("");
 
-            // 
+            // set checkbox
             showAfterSave.Checked = cfg.openPDFAfterSave;
 
             // create & configure new PDF writer
@@ -94,6 +120,7 @@ namespace spotchempdf
             // make sure correct ouput folder is display after loading configuration
             updatePDFPath(cfg.outputFolder);
 
+            // try opening serial port
             log.Info("Opening serial port");
             sr.OpenSerial(cfg.comPort);
             sr.setBufferProcessor(this);
@@ -101,6 +128,7 @@ namespace spotchempdf
 
             timer1.Interval = 500; // 500ms between keystrokes is considered as interval long enough to save updates
 
+            // load readings already existing in readings folder
             LoadReadings(cfg.readingsFolder);
 
         }
@@ -128,27 +156,26 @@ namespace spotchempdf
             loadedReadings.Clear();
             readingsList.Clear();
 
-            foreach (string file in Directory.EnumerateFiles(path, "*.json"))
+            foreach (string fileName in Directory.EnumerateFiles(path, "*.json"))
             {
-                Reading rd = Reading.fromJSONFile(file);
+                Reading rd = Reading.fromJSONFile(fileName);
+                
                 if (loadedReadings.TryAdd(rd.GetUUID(), rd))
+
                 {
-                    //readingsList.Add(new { Id = rd.GetUUID(), Name = rd.GetTitle(), FName = file });
-                    readingsList.Add(new { UUID = rd.GetUUID(), title = rd.GetTitle(), fname = file });
-                    //readingsList.TryAdd(rd.GetUUID(), rd.GetTitle());
-                    log.Debug("Adding reading: UUID=" + rd.GetUUID() + " Title=" + rd.GetTitle());
+                    readingsList.Add(new { Value = rd.GetUUID(), Text = rd.GetTitle(), fname = fileName });
+                    log.Debug("Adding reading: Value=" + rd.GetUUID() + " Text=" + rd.GetTitle());
                 }
                 else
                     log.Warn("Failed to load reading " + rd.GetTitle());
-
             }
 
             lstReadings.DataSource = null;
             if (readingsList.Count > 0)
             {
-                lstReadings.DataSource = (IList<dynamic>)readingsList;
-                lstReadings.DisplayMember = "title";
-                lstReadings.ValueMember = "UUID";
+                lstReadings.DisplayMember = "Text";
+                lstReadings.ValueMember = "Value";
+                lstReadings.DataSource = readingsList;
             }
 
             lstReadings.Invalidate();
@@ -156,7 +183,7 @@ namespace spotchempdf
 
             log.Info("Loaded " + loadedReadings.Count + " readings.");
 
-            updateSelectedReading();
+            //updateSelectedReading();
 
         }
 
@@ -167,7 +194,7 @@ namespace spotchempdf
             log.Info("SavePDF: Reading(" + r.GetUUID() + ") saving to file=" + s);
 
             // move reading to archive
-            s = readingsList.Find(x => x.UUID == r.GetUUID()).fname;
+            s = readingsList.Find(x => x.Value == r.GetUUID()).fname;
             s = Path.GetFileName(s);
             string sa = s;
             if (File.Exists(cfg.archiveFolder + @"\" + s))
@@ -198,12 +225,11 @@ namespace spotchempdf
                 return;
             }
 
-            log.Debug("Going to save " + lstReadings.SelectedItem + " value=" + lstReadings.SelectedValue);
+            log.Debug("Going to save " + lstReadings.SelectedItem + " value=" + getSelectedValue());
             // get selected item
             
-            String s = lstReadings.SelectedItem.ToString();
-            if (!loadedReadings.TryGetValue(lstReadings.SelectedValue.ToString(), out r))
-                log.Warn("SavePDF: Unable to find reading UUID=" + lstReadings.SelectedValue.ToString());
+            if (!loadedReadings.TryGetValue(getSelectedValue(), out r))
+                log.Warn("SavePDF: Unable to find reading UUID=" + getSelectedValue());
             else
             {
                 RangeType rt;
@@ -517,7 +543,7 @@ namespace spotchempdf
         }
 
         private void updateSelectedReading()
-        {
+        {            
             if (lstReadings.Items.Count == 0 || lstReadings.SelectedIndex > lstReadings.Items.Count || lstReadings.SelectedIndex < 0)
             {
                 selectedReading = null;
@@ -545,7 +571,8 @@ namespace spotchempdf
             // get selected item
             try
             {
-                selectedReading = loadedReadings[lstReadings.SelectedValue.ToString()];
+                log.Debug("Selecting reading UUID=" + getSelectedValue()+" Index="+lstReadings.SelectedIndex);
+                selectedReading = loadedReadings[getSelectedValue()];
 
                 clientId.Enabled = true;
                 clientName.Enabled = true;
@@ -563,9 +590,9 @@ namespace spotchempdf
                 animalAge.Text = selectedReading.animalAge.ToString();
 
             }
-            catch (KeyNotFoundException)
+            catch (KeyNotFoundException ex)
             {
-                log.Warn("UpdateSelected: Unable to find reading UUID=" + lstReadings.SelectedValue.ToString());
+                log.Warn("UpdateSelected: Unable to find reading UUID=" + getSelectedValue()+" ex="+ex.Message+" stack="+ex.StackTrace);
                 clientId.Text = "";
                 clientName.Text = "";
                 animalName.Text = "";
@@ -576,12 +603,21 @@ namespace spotchempdf
 
         }
 
+        // not sure why standard SelectedValue was returning wrong data while SelectedItem was showing correct ones
+        private string getSelectedValue()
+        {
+            string s = "";
+            if (lstReadings.SelectedItem != null)
+                s = (string)lstReadings.SelectedItem.GetType().GetProperty("Value").GetValue(lstReadings.SelectedItem, null);
+            return s;
+        }
+
         private void lstReadings_SelectedIndexChanged(object sender, EventArgs e)
         {
-            log.Debug("Selected reading=" + lstReadings.SelectedItem+" value="+lstReadings.SelectedValue);
-
-            //saveUpdates();
             updateSelectedReading();
+
+            log.Debug("Selected reading=" + lstReadings.SelectedItem+" value="+ getSelectedValue());
+
         }
 
         private void timer1_Tick(object sender, EventArgs e)
