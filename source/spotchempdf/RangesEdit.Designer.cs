@@ -63,9 +63,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(13, 13);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(25, 13);
+            this.label1.Size = new System.Drawing.Size(30, 13);
             this.label1.TabIndex = 1;
-            this.label1.Text = "Typ";
+            this.label1.Text = "Druh";
             // 
             // addType
             // 
@@ -73,7 +73,7 @@
             this.addType.Name = "addType";
             this.addType.Size = new System.Drawing.Size(75, 23);
             this.addType.TabIndex = 2;
-            this.addType.Text = "Pridaj typ";
+            this.addType.Text = "Pridaj druh";
             this.addType.UseVisualStyleBackColor = true;
             this.addType.Click += new System.EventHandler(this.addType_Click);
             // 
@@ -158,7 +158,7 @@
             this.deleteType.Name = "deleteType";
             this.deleteType.Size = new System.Drawing.Size(75, 23);
             this.deleteType.TabIndex = 3;
-            this.deleteType.Text = "Vymaž typ";
+            this.deleteType.Text = "Vymaž druh";
             this.deleteType.UseVisualStyleBackColor = true;
             this.deleteType.Click += new System.EventHandler(this.deleteType_Click);
             // 
@@ -167,7 +167,7 @@
             this.deleteRange.Enabled = false;
             this.deleteRange.Location = new System.Drawing.Point(108, 220);
             this.deleteRange.Name = "deleteRange";
-            this.deleteRange.Size = new System.Drawing.Size(75, 37);
+            this.deleteRange.Size = new System.Drawing.Size(75, 24);
             this.deleteRange.TabIndex = 10;
             this.deleteRange.Text = "Vymaž test";
             this.deleteRange.UseVisualStyleBackColor = true;
@@ -177,7 +177,7 @@
             // 
             this.addRange.Location = new System.Drawing.Point(13, 220);
             this.addRange.Name = "addRange";
-            this.addRange.Size = new System.Drawing.Size(75, 37);
+            this.addRange.Size = new System.Drawing.Size(75, 24);
             this.addRange.TabIndex = 9;
             this.addRange.Text = "Pridaj test";
             this.addRange.UseVisualStyleBackColor = true;
@@ -211,7 +211,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(386, 268);
+            this.ClientSize = new System.Drawing.Size(386, 252);
             this.Controls.Add(this.rangeName);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.deleteRange);
@@ -231,7 +231,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "frmEditRanges";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
-            this.Text = "Rozsahy";
+            this.Text = "Rozsahy hodnôt testov pre druhy zvierat";
             this.ResumeLayout(false);
             this.PerformLayout();
 

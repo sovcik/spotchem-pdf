@@ -39,6 +39,10 @@
             this.frmFlbBrowse = new System.Windows.Forms.FolderBrowserDialog();
             this.showAfterSave = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.animalType = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.animalAge = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.animalName = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.clientName = new System.Windows.Forms.TextBox();
@@ -56,12 +60,8 @@
             this.changeSerialPortMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.changeOutputFolderMenutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.providerDetailsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.loadReadingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.animalAge = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.animalType = new System.Windows.Forms.ComboBox();
             this.editRangesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadReadingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -114,7 +114,7 @@
             // btnConfigSerial
             // 
             this.btnConfigSerial.Location = new System.Drawing.Point(0, 0);
-            this.btnConfigSerial.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnConfigSerial.Margin = new System.Windows.Forms.Padding(2);
             this.btnConfigSerial.Name = "btnConfigSerial";
             this.btnConfigSerial.Size = new System.Drawing.Size(56, 19);
             this.btnConfigSerial.TabIndex = 20;
@@ -132,7 +132,7 @@
             // button1
             // 
             this.button1.Location = new System.Drawing.Point(0, 0);
-            this.button1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.button1.Margin = new System.Windows.Forms.Padding(2);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(56, 19);
             this.button1.TabIndex = 19;
@@ -168,6 +168,45 @@
             this.groupBox1.TabIndex = 16;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Doplňujúce údaje";
+            // 
+            // animalType
+            // 
+            this.animalType.FormattingEnabled = true;
+            this.animalType.Location = new System.Drawing.Point(7, 142);
+            this.animalType.Name = "animalType";
+            this.animalType.Size = new System.Drawing.Size(121, 21);
+            this.animalType.TabIndex = 4;
+            this.animalType.TextChanged += new System.EventHandler(this.readingModified_TextChanged);
+            // 
+            // label4
+            // 
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(4, 126);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(71, 13);
+            this.label4.TabIndex = 7;
+            this.label4.Text = "Druh zvieraťa";
+            // 
+            // animalAge
+            // 
+            this.animalAge.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.animalAge.Location = new System.Drawing.Point(6, 225);
+            this.animalAge.MaxLength = 3;
+            this.animalAge.Name = "animalAge";
+            this.animalAge.Size = new System.Drawing.Size(76, 20);
+            this.animalAge.TabIndex = 6;
+            this.animalAge.TextChanged += new System.EventHandler(this.readingModified_TextChanged);
+            // 
+            // label2
+            // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(7, 209);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(67, 13);
+            this.label2.TabIndex = 6;
+            this.label2.Text = "Vek zvieraťa";
             // 
             // animalName
             // 
@@ -320,58 +359,19 @@
             this.providerDetailsMenuItem.Text = "Údaje &poskytovateľa";
             this.providerDetailsMenuItem.Click += new System.EventHandler(this.providerDetailsMenuItem_Click);
             // 
-            // loadReadingsMenuItem
-            // 
-            this.loadReadingsMenuItem.Name = "loadReadingsMenuItem";
-            this.loadReadingsMenuItem.Size = new System.Drawing.Size(102, 20);
-            this.loadReadingsMenuItem.Text = "N&ačítaj merania";
-            this.loadReadingsMenuItem.Click += new System.EventHandler(this.loadReadingsMenuItem_Click);
-            // 
-            // animalAge
-            // 
-            this.animalAge.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.animalAge.Location = new System.Drawing.Point(6, 225);
-            this.animalAge.MaxLength = 3;
-            this.animalAge.Name = "animalAge";
-            this.animalAge.Size = new System.Drawing.Size(76, 20);
-            this.animalAge.TabIndex = 6;
-            this.animalAge.TextChanged += new System.EventHandler(this.readingModified_TextChanged);
-            // 
-            // label2
-            // 
-            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(7, 209);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(67, 13);
-            this.label2.TabIndex = 6;
-            this.label2.Text = "Vek zvieraťa";
-            // 
-            // label4
-            // 
-            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(4, 126);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(66, 13);
-            this.label4.TabIndex = 7;
-            this.label4.Text = "Typ zvieraťa";
-            // 
-            // animalType
-            // 
-            this.animalType.FormattingEnabled = true;
-            this.animalType.Location = new System.Drawing.Point(7, 142);
-            this.animalType.Name = "animalType";
-            this.animalType.Size = new System.Drawing.Size(121, 21);
-            this.animalType.TabIndex = 4;
-            this.animalType.TextChanged += new System.EventHandler(this.readingModified_TextChanged);
-            // 
             // editRangesMenuItem
             // 
             this.editRangesMenuItem.Name = "editRangesMenuItem";
             this.editRangesMenuItem.Size = new System.Drawing.Size(181, 22);
             this.editRangesMenuItem.Text = "&Referenčné rozsahy";
             this.editRangesMenuItem.Click += new System.EventHandler(this.editRangesMenuItem_Click);
+            // 
+            // loadReadingsMenuItem
+            // 
+            this.loadReadingsMenuItem.Name = "loadReadingsMenuItem";
+            this.loadReadingsMenuItem.Size = new System.Drawing.Size(102, 20);
+            this.loadReadingsMenuItem.Text = "N&ačítaj merania";
+            this.loadReadingsMenuItem.Click += new System.EventHandler(this.loadReadingsMenuItem_Click);
             // 
             // FrmMain
             // 

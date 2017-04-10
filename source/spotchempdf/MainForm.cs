@@ -227,7 +227,7 @@ namespace spotchempdf
 
             if (animalType.Text.Trim().Length == 0)
             {
-                MessageBox.Show("Najprv vyberte typ zvieraťa.");
+                MessageBox.Show("Najprv vyberte druh zvieraťa.");
                 return;
             }
 
