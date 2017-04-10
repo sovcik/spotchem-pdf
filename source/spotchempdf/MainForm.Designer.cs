@@ -176,6 +176,7 @@
             this.animalType.Name = "animalType";
             this.animalType.Size = new System.Drawing.Size(121, 21);
             this.animalType.TabIndex = 4;
+            this.animalType.SelectionChangeCommitted += new System.EventHandler(this.animalType_SelectionChangeCommitted);
             this.animalType.TextChanged += new System.EventHandler(this.readingModified_TextChanged);
             // 
             // label4

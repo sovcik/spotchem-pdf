@@ -171,7 +171,6 @@ namespace spotchempdf
 
         public string ToJSON()
         {
-            log.Debug("Items="+items.Count);
             string s = JsonConvert.SerializeObject(this, Formatting.Indented);
             return s;
         }
@@ -197,8 +196,17 @@ namespace spotchempdf
 
         public void Save(string path)
         {
+
             string fname = id.Trim() + @"-" + date.ToString("yyyyMMdd") + @"-" + date.ToString("HHmm")+@".json";
-            SaveToFile(path + @"\" + fname, ToJSON());
+            fname = path + @"\" + fname;
+            try
+            {
+                SaveToFile(fname, ToJSON());
+                log.Debug("Reading Saved: file = " + fname+ "  reading=" + this);
+            } catch (Exception ex)
+            {
+                log.Error("Error saving reading to file. " + ex.Message);
+            }
 
         }
 
@@ -266,6 +274,8 @@ namespace spotchempdf
             int off = 0;
             string s;
             float v;
+
+            log.Debug("Parsing reading...");
 
             // STX is at offset 0
 

@@ -82,6 +82,13 @@ namespace spotchempdf
                 cfg.Save();
             }
 
+            // configure logging
+            log4net.GlobalContext.Properties["LogFileName"] = cfg.logFolder + @"\SpotchemPDF.log";
+            if (File.Exists(cfg.configFolder + @"\" + cfg.logConfigFile))
+                XmlConfigurator.Configure(new System.IO.FileInfo(cfg.configFolder + @"\" + cfg.logConfigFile));
+            else
+                BasicConfigurator.Configure();
+
             // restore window position
             this.Location = new System.Drawing.Point(cfg.mainWindow.x, cfg.mainWindow.y);
             InitializeComponent();
@@ -94,12 +101,6 @@ namespace spotchempdf
             // create application folders
             cfg.createFolders();
 
-            // configure logging
-            log4net.GlobalContext.Properties["LogFileName"] = cfg.logFolder + @"\SpotchemPDF.log";
-            if (File.Exists(cfg.configFolder + @"\"+cfg.logConfigFile))
-                XmlConfigurator.Configure(new System.IO.FileInfo(cfg.configFolder + @"\" + cfg.logConfigFile));
-            else
-                BasicConfigurator.Configure();
 
             log.Info("********** Starting SpotchemPDF "+PublishedVersion);
 
@@ -158,16 +159,22 @@ namespace spotchempdf
 
             foreach (string fileName in Directory.EnumerateFiles(path, "*.json"))
             {
-                Reading rd = Reading.fromJSONFile(fileName);
-                
-                if (loadedReadings.TryAdd(rd.GetUUID(), rd))
-
+                try
                 {
-                    readingsList.Add(new { Value = rd.GetUUID(), Text = rd.GetTitle(), fname = fileName });
-                    log.Debug("Adding reading: Value=" + rd.GetUUID() + " Text=" + rd.GetTitle());
+                    Reading rd = Reading.fromJSONFile(fileName);
+
+                    if (loadedReadings.TryAdd(rd.GetUUID(), rd))
+
+                    {
+                        readingsList.Add(new { Value = rd.GetUUID(), Text = rd.GetTitle(), fname = fileName });
+                        log.Debug("Adding reading: Value=" + rd.GetUUID() + " Text=" + rd.GetTitle());
+                    }
+                    else
+                        log.Warn("Failed to add reading " + rd.GetTitle());
+                } catch (Exception ex)
+                {
+                    log.Debug("Failed to load reading from file=" + fileName + "  ex=" + ex.Message);
                 }
-                else
-                    log.Warn("Failed to load reading " + rd.GetTitle());
             }
 
             lstReadings.DataSource = null;
@@ -196,18 +203,18 @@ namespace spotchempdf
             // move reading to archive
             s = readingsList.Find(x => x.Value == r.GetUUID()).fname;
             s = Path.GetFileName(s);
-            string sa = s;
-            if (File.Exists(cfg.archiveFolder + @"\" + s))
+            string sa = cfg.archiveFolder + @"\" + s;
+            if (File.Exists(sa))
             {
                 log.Debug("Reading already archived. Adding version.");
                 int sfx = 0;
-                while (File.Exists(s + "." + sfx)) sfx++;
-                sa = s + "." + sfx;
+                while (File.Exists(sa + "." + sfx)) sfx++;
+                sa = sa + "." + sfx;
             }
             try
             {
-                File.Move(cfg.readingsFolder + @"\" + s, cfg.archiveFolder + @"\" + sa);
-                log.Info("Reading file=" + s + " moved to file=" + cfg.archiveFolder + @"\" + sa);
+                File.Move(cfg.readingsFolder + @"\" + s, sa);
+                log.Info("Reading file=" + s + " moved to file=" + sa);
             }
             catch (IOException ex)
             {
@@ -310,7 +317,17 @@ namespace spotchempdf
 
                     // show number of received messages
                     this.rcvCount.Text = receivedCount.ToString();
+                    /*
+                    if (this.rcvCount.InvokeRequired)
+                    {
+                        this.rcvCount.BeginInvoke((MethodInvoker)delegate () { this.rcvCount.Text = this.receivedCount.ToString(); ; });
+                    }
+                    else
+                    {
+                        this.rcvCount.Text = this.receivedCount.ToString(); ;
+                    }
                     this.rcvCount.Invalidate();
+                    */
 
                     // save parsed readings
                     log.Debug("Saving readings to " + cfg.readingsFolder);
@@ -318,7 +335,7 @@ namespace spotchempdf
 
                     // reload available reading
                     LoadReadings(cfg.readingsFolder);
-                    this.lstReadings.Invalidate();
+                    
                 }
             }
         }
@@ -503,6 +520,7 @@ namespace spotchempdf
         private void showAfterSave_CheckedChanged(object sender, EventArgs e)
         {
             cfg.openPDFAfterSave = ((CheckBox)sender).Checked;
+            cfg.Save();
         }
 
         private void saveUpdates()
@@ -515,19 +533,20 @@ namespace spotchempdf
                     String key = selectedReading.GetUUID();
                     lock (selectedReading)
                     {
+                        selectedReading.clientId = clientId.Text;
+                        selectedReading.clientName = clientName.Text;
+                        selectedReading.animalName = animalName.Text;
+                        selectedReading.animalType = animalType.Text;
+                        selectedReading.animalAge = int.Parse(animalAge.Text);
 
                         loadedReadings[key].clientId = selectedReading.clientId;
                         loadedReadings[key].clientName = selectedReading.clientName;
                         loadedReadings[key].animalType = selectedReading.animalType;
                         loadedReadings[key].animalName = selectedReading.animalName;
                         loadedReadings[key].animalAge = selectedReading.animalAge;
+
                         loadedReadings[key].Save(cfg.readingsFolder);
 
-                        selectedReading.clientId = clientId.Text;
-                        selectedReading.clientName = clientName.Text;
-                        selectedReading.animalName = animalName.Text;
-                        selectedReading.animalType = animalType.Text;
-                        selectedReading.animalAge = int.Parse(animalAge.Text);
 
                     }
 
@@ -551,7 +570,7 @@ namespace spotchempdf
 
         private void updateSelectedReading()
         {            
-            if (lstReadings.Items.Count == 0 || lstReadings.SelectedIndex > lstReadings.Items.Count || lstReadings.SelectedIndex < 0)
+            if (lstReadings.SelectedIndex < 0 )
             {
                 selectedReading = null;
                 log.Info("UpdateSelected: List of readings is empty or nothing is selected. count="+lstReadings.Items.Count + " selected="+lstReadings.SelectedIndex);
@@ -614,7 +633,7 @@ namespace spotchempdf
         private string getSelectedValue()
         {
             string s = "";
-            if (lstReadings.SelectedItem != null)
+            if (lstReadings.SelectedIndex >= 0)
                 s = (string)lstReadings.SelectedItem.GetType().GetProperty("Value").GetValue(lstReadings.SelectedItem, null);
             return s;
         }
@@ -623,7 +642,8 @@ namespace spotchempdf
         {
             updateSelectedReading();
 
-            log.Debug("Selected reading=" + lstReadings.SelectedItem+" value="+ getSelectedValue());
+            if (lstReadings.SelectedIndex >= 0)
+                log.Debug("Selected reading=" + lstReadings.SelectedItem+" value="+ getSelectedValue());
 
         }
 
@@ -655,6 +675,16 @@ namespace spotchempdf
         private void editRangesMenuItem_Click(object sender, EventArgs e)
         {
             editRanges();
+        }
+
+        private void animalType_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            lock (updateLock)
+            {
+                readingUpdated = true;
+                timer1.Start();
+            }
+
         }
     }
 }
