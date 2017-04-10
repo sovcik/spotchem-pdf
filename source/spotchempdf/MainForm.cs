@@ -225,6 +225,13 @@ namespace spotchempdf
                 return;
             }
 
+            if (animalType.Text.Trim().Length == 0)
+            {
+                MessageBox.Show("Najprv vyberte typ zvieraťa.");
+                return;
+            }
+
+
             log.Debug("Going to save " + lstReadings.SelectedItem + " value=" + getSelectedValue());
             // get selected item
             

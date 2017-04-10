@@ -169,7 +169,7 @@
             this.deleteRange.Name = "deleteRange";
             this.deleteRange.Size = new System.Drawing.Size(75, 37);
             this.deleteRange.TabIndex = 10;
-            this.deleteRange.Text = "Vymaž veličinu";
+            this.deleteRange.Text = "Vymaž test";
             this.deleteRange.UseVisualStyleBackColor = true;
             this.deleteRange.Click += new System.EventHandler(this.deleteRange_Click);
             // 
@@ -179,7 +179,7 @@
             this.addRange.Name = "addRange";
             this.addRange.Size = new System.Drawing.Size(75, 37);
             this.addRange.TabIndex = 9;
-            this.addRange.Text = "Pridaj veličinu";
+            this.addRange.Text = "Pridaj test";
             this.addRange.UseVisualStyleBackColor = true;
             this.addRange.Click += new System.EventHandler(this.addRange_Click);
             // 
