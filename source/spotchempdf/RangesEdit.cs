@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using log4net;
 
@@ -32,7 +28,14 @@ namespace spotchempdf
             rr = ReadingRanges.Load(rangesFileName);
             reconnectTypes();
             refreshFields();
-            
+        }
+
+        public frmEditRanges(ReadingRanges ra)
+        {
+            InitializeComponent();
+            rr = ra;
+            reconnectTypes();
+            refreshFields();
 
         }
 
@@ -354,11 +357,27 @@ namespace spotchempdf
                 rr.rangeTypes[animalType.Text].ranges.Remove(oldRangeName);
             }
 
-            // save ranges
-            rr.Save(rangesFileName);
-            log.Info("Ranges saved to file=" + rangesFileName);
+            bool retry = false;
+            do
+            {
+                try
+                {
+                    // save ranges
+                    rr.Save(rangesFileName);
+                    log.Info("Ranges saved to file=" + rangesFileName);
 
-            rangeChanged = false;
+                    rangeChanged = false;
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Failed to save range definitions to " + rangesFileName);
+                    retry = (MessageBox.Show("Nepodarilo sa uložiť rozsahy testov do súboru "+ Environment.NewLine 
+                        + rangesFileName+ Environment.NewLine
+                        + Environment.NewLine
+                        +"Chyba:"+ex.Message, "", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error) == DialogResult.Retry);
+                }
+
+            } while (retry);
             
 
             if (rangeNameChanged)

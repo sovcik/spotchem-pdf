@@ -176,8 +176,8 @@
             this.animalType.Name = "animalType";
             this.animalType.Size = new System.Drawing.Size(121, 21);
             this.animalType.TabIndex = 4;
-            this.animalType.SelectionChangeCommitted += new System.EventHandler(this.animalType_SelectionChangeCommitted);
-            this.animalType.TextChanged += new System.EventHandler(this.readingModified_TextChanged);
+            this.animalType.SelectedIndexChanged += new System.EventHandler(this.animalType_Changed);
+            this.animalType.TextChanged += new System.EventHandler(this.animalType_Changed);
             // 
             // label4
             // 
@@ -197,7 +197,7 @@
             this.animalAge.Name = "animalAge";
             this.animalAge.Size = new System.Drawing.Size(76, 20);
             this.animalAge.TabIndex = 6;
-            this.animalAge.TextChanged += new System.EventHandler(this.readingModified_TextChanged);
+            this.animalAge.TextChanged += new System.EventHandler(this.readingModified_animalAgeChanged);
             // 
             // label2
             // 
@@ -217,7 +217,7 @@
             this.animalName.Name = "animalName";
             this.animalName.Size = new System.Drawing.Size(227, 20);
             this.animalName.TabIndex = 5;
-            this.animalName.TextChanged += new System.EventHandler(this.readingModified_TextChanged);
+            this.animalName.TextChanged += new System.EventHandler(this.readingModified_animalNameChanged);
             // 
             // label7
             // 
@@ -237,7 +237,7 @@
             this.clientName.Name = "clientName";
             this.clientName.Size = new System.Drawing.Size(227, 20);
             this.clientName.TabIndex = 3;
-            this.clientName.TextChanged += new System.EventHandler(this.readingModified_TextChanged);
+            this.clientName.TextChanged += new System.EventHandler(this.readingModified_clientNameChanged);
             // 
             // label6
             // 
@@ -267,7 +267,7 @@
             this.clientId.Name = "clientId";
             this.clientId.Size = new System.Drawing.Size(100, 20);
             this.clientId.TabIndex = 2;
-            this.clientId.TextChanged += new System.EventHandler(this.readingModified_TextChanged);
+            this.clientId.TextChanged += new System.EventHandler(this.readingModified_clientIdChanged);
             // 
             // timer1
             // 

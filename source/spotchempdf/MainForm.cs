@@ -23,6 +23,9 @@ namespace spotchempdf
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(FrmMain));
 
+        //
+        const String appName = "SpotchemPDF";
+
         // object containing loaded configuration
         Config cfg = new Config();
 
@@ -74,7 +77,17 @@ namespace spotchempdf
             if (File.Exists(s))
             {
                 log.Debug("Loading configuration from " + s);
-                cfg = cfg.Load();
+                try
+                {
+                    cfg = cfg.Load();
+                } catch (Exception ex)
+                {
+                    log.Fatal("Configuration failed to load. ex=" + ex.Message);
+                    MessageBox.Show("Nepodarilo sa načítať konfiguračné parametre aplikácie."+ Environment.NewLine
+                        + Environment.NewLine
+                        +"Chyba:" +ex.Message, appName, MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                    System.Windows.Forms.Application.Exit();
+                }
             }
             else
             {
@@ -83,7 +96,7 @@ namespace spotchempdf
             }
 
             // configure logging
-            log4net.GlobalContext.Properties["LogFileName"] = cfg.logFolder + @"\SpotchemPDF.log";
+            log4net.GlobalContext.Properties["LogFileName"] = cfg.logFolder + @"\"+appName+".log";
             if (File.Exists(cfg.configFolder + @"\" + cfg.logConfigFile))
                 XmlConfigurator.Configure(new System.IO.FileInfo(cfg.configFolder + @"\" + cfg.logConfigFile));
             else
@@ -96,21 +109,41 @@ namespace spotchempdf
             // clear listbox showing readings
             lstReadings.Items.Clear();
 
-            this.Text = "SpotchemPDF "+PublishedVersion;
+            this.Text = appName+" "+PublishedVersion;
 
             // create application folders
             cfg.createFolders();
 
 
-            log.Info("********** Starting SpotchemPDF "+PublishedVersion);
+            log.Info("********** Starting "+appName+" "+PublishedVersion);
 
             // if none exist, create range configuration file
-            if (!File.Exists(cfg.configFolder + @"\" + cfg.rangesConfigFile))
-                readingRanges.SaveDefaults(cfg.configFolder + @"\" + cfg.rangesConfigFile);
+            try
+            {
+                if (!File.Exists(cfg.configFolder + @"\" + cfg.rangesConfigFile))
+                    readingRanges.SaveDefaults(cfg.configFolder + @"\" + cfg.rangesConfigFile);
+            } catch (Exception ex)
+            {
+                log.Fatal("Failed creating default range file. ex=" + ex.Message);
+                MessageBox.Show("Nepodarilo sa vytvoriť súbor so štanradnými rozsahmi meraní."+ Environment.NewLine
+                    + Environment.NewLine
+                    +"Chyba:"+ex.Message, appName, MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                System.Windows.Forms.Application.Exit();
+            }
 
-            // load reading ranges for different types of animals
-            readingRanges = ReadingRanges.Load(cfg.configFolder + @"\" + cfg.rangesConfigFile);
-            reloadAnimalTypes("");
+            try
+            {
+                // load reading ranges for different types of animals
+                readingRanges = ReadingRanges.Load(cfg.configFolder + @"\" + cfg.rangesConfigFile);
+                reloadAnimalTypes("");
+            } catch (Exception ex)
+            {
+                log.Fatal("Failed loading range file. ex=" + ex.Message);
+                MessageBox.Show("Nepodarilo sa načítať súbor s rozsahmi meraní."+ Environment.NewLine
+                    + Environment.NewLine
+                    +"Chyba:"+ex.Message, appName, MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                System.Windows.Forms.Application.Exit();
+            }
 
             // set checkbox
             showAfterSave.Checked = cfg.openPDFAfterSave;
@@ -138,7 +171,7 @@ namespace spotchempdf
         {
             get
             {
-                if (System.Deployment.Application.ApplicationDeployment.IsNetworkDeployed)
+                if (System.AppDomain.CurrentDomain.ActivationContext != null)
                 {
                     Version ver = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion;
                     return string.Format("{0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
@@ -481,23 +514,53 @@ namespace spotchempdf
 
         private void editRanges()
         {
+            string rangesFileName = cfg.configFolder + @"\" + cfg.rangesConfigFile;
             log.Debug("Opening edit ranges window");
-            frmEditRanges frm = new frmEditRanges(cfg.configFolder+@"\"+cfg.rangesConfigFile);
+            try
+            {
+                frmEditRanges frm = new frmEditRanges(rangesFileName);
+                //frmEditRanges frm = new frmEditRanges(readingRanges);
+                // set saved window coordinates
+                frm.Location = new System.Drawing.Point(cfg.editRangesWindow.x, cfg.editRangesWindow.y);
 
-            // set saved window coordinates
-            frm.Location = new System.Drawing.Point(cfg.editRangesWindow.x, cfg.editRangesWindow.y);
+                frm.ShowDialog();
 
-            frm.ShowDialog();
+                bool retry = false;
+                do
+                {
+                    try
+                    {
+                        readingRanges = ReadingRanges.Load(rangesFileName);
 
-            readingRanges = ReadingRanges.Load(cfg.configFolder + @"\" + cfg.rangesConfigFile);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("Failed reading updated range file. ex=" + ex.Message);
+                        if (MessageBox.Show("Nepodarilo sa načítať zmenené rozsahy meraní."+ Environment.NewLine
+                            + Environment.NewLine
+                            +"Chyba:" + ex.Message, appName, MessageBoxButtons.RetryCancel, MessageBoxIcon.Exclamation) == DialogResult.Retry)
+                            retry = true;
+                    }
+                } while (retry);
 
-            reloadAnimalTypes(animalType.Text);
+                reloadAnimalTypes(animalType.Text);
 
-            cfg.editRangesWindow.x = frm.Location.X;
-            cfg.editRangesWindow.y = frm.Location.Y;
+                cfg.editRangesWindow.x = frm.Location.X;
+                cfg.editRangesWindow.y = frm.Location.Y;
 
-            cfg.Save();
-            log.Debug("Configuration saved.");
+                cfg.Save();
+                log.Debug("Configuration saved.");
+
+            }
+            catch (Exception ex)
+            {
+                log.Error("Failed loading ranges from " + rangesFileName);
+                MessageBox.Show("Nepodarilo sa otvoriť súbor s definíciami rozsahov. "+ Environment.NewLine 
+                    + "Súbor=" + rangesFileName+ Environment.NewLine
+                    + Environment.NewLine
+                    +"Chyba:"+ex.Message, appName, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+            }
 
         }
 
@@ -533,11 +596,13 @@ namespace spotchempdf
                     String key = selectedReading.GetUUID();
                     lock (selectedReading)
                     {
+                        log.Debug("Saving updated reading");
                         selectedReading.clientId = clientId.Text;
                         selectedReading.clientName = clientName.Text;
                         selectedReading.animalName = animalName.Text;
                         selectedReading.animalType = animalType.Text;
                         selectedReading.animalAge = int.Parse(animalAge.Text);
+                        log.Debug("Reading=" + selectedReading.ToJSON().ToString());
 
                         loadedReadings[key].clientId = selectedReading.clientId;
                         loadedReadings[key].clientName = selectedReading.clientName;
@@ -546,7 +611,7 @@ namespace spotchempdf
                         loadedReadings[key].animalAge = selectedReading.animalAge;
 
                         loadedReadings[key].Save(cfg.readingsFolder);
-
+                        log.Debug("Updated Reading Saved");
 
                     }
 
@@ -558,14 +623,14 @@ namespace spotchempdf
 
         }
 
-        private void readingModified_TextChanged(object sender, EventArgs e)
+
+        private void flagReadingUpdated()
         {
             lock (updateLock)
             {
                 readingUpdated = true;
                 timer1.Start();
             }
-
         }
 
         private void updateSelectedReading()
@@ -677,14 +742,39 @@ namespace spotchempdf
             editRanges();
         }
 
-        private void animalType_SelectionChangeCommitted(object sender, EventArgs e)
+        private void animalType_Changed(object sender, EventArgs e)
         {
-            lock (updateLock)
+            if (selectedReading != null && selectedReading.animalType != animalType.Text)
             {
-                readingUpdated = true;
-                timer1.Start();
+                log.Debug("Animal type changed to: " + animalType.Text);
+                flagReadingUpdated();
             }
 
         }
+
+        private void readingModified_clientIdChanged(object sender, EventArgs e)
+        {
+            if (selectedReading != null && selectedReading.clientId != clientId.Text)
+                flagReadingUpdated();
+        }
+
+        private void readingModified_clientNameChanged(object sender, EventArgs e)
+        {
+            if (selectedReading != null && selectedReading.clientName != clientName.Text)
+                flagReadingUpdated();
+        }
+
+        private void readingModified_animalNameChanged(object sender, EventArgs e)
+        {
+            if (selectedReading != null && selectedReading.animalName != animalName.Text)
+                flagReadingUpdated();
+        }
+
+        private void readingModified_animalAgeChanged(object sender, EventArgs e)
+        {
+            if (selectedReading != null && selectedReading.animalAge.ToString() != animalAge.Text)
+                flagReadingUpdated();
+        }
+
     }
 }

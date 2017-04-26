@@ -116,7 +116,7 @@ namespace spotchempdf
             Directory.CreateDirectory(configFolder);
             using (StreamWriter outputFile = new StreamWriter(cfgFile))
             {
-                outputFile.WriteAsync(content);
+                outputFile.Write(content);
             }
         }
 

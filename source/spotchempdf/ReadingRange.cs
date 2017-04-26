@@ -5,7 +5,7 @@ using log4net;
 
 namespace spotchempdf
 {
-    class Range
+    public class Range
     {
         public float min { get; set; }
         public float max { get; set; }
@@ -26,7 +26,7 @@ namespace spotchempdf
         }
     }
 
-    class RangeType
+    public class RangeType
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(RangeType));
 
@@ -62,7 +62,7 @@ namespace spotchempdf
 
     }
 
-    class ReadingRanges
+    public class ReadingRanges
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(ReadingRanges));
 
@@ -92,11 +92,16 @@ namespace spotchempdf
         public void Save(string fileName)
         {
             log.Debug("Saving ranges to " + fileName);
-            string content = this.toJSON();
-            using (StreamWriter outputFile = new StreamWriter(fileName))
+            if (fileName != null)
             {
-                outputFile.WriteAsync(content);
+                string content = this.toJSON();
+                using (StreamWriter outputFile = new StreamWriter(fileName))
+                {
+                    outputFile.Write(content);
+                }
             }
+            else
+                log.Debug("File not specified - nothing saved");
 
         }
 

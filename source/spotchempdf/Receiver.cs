@@ -1,4 +1,4 @@
-﻿
+﻿using System;
 using System.IO;
 using System.IO.Ports;
 using log4net;
@@ -30,9 +30,9 @@ namespace spotchempdf
                 log.Debug("Serial port "+port.name+" open");
             
             }
-            catch
+            catch (Exception ex)
             {
-                log.Error("Serial port "+port.name+" failed to open");
+                log.Error("Serial port "+port.name+" failed to open. ex="+ex.Message);
             }
 
         }
