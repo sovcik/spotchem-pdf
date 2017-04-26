@@ -171,6 +171,7 @@
             // 
             // animalType
             // 
+            this.animalType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.animalType.FormattingEnabled = true;
             this.animalType.Location = new System.Drawing.Point(7, 142);
             this.animalType.Name = "animalType";
