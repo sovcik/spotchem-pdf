@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using log4net;
@@ -91,14 +92,40 @@ namespace spotchempdf
 
         public void Save(string fileName)
         {
+            string bakFile = fileName + ".bak";
+            log.Debug("Creating backup file " + bakFile);
+            try
+            {
+                File.Copy(fileName, bakFile, true);
+            } catch (Exception ex)
+            {
+                log.Error("Failed creating backup file " + bakFile+" ex="+ex.Message);
+            }
+
             log.Debug("Saving ranges to " + fileName);
             if (fileName != null)
             {
                 string content = this.toJSON();
-                using (StreamWriter outputFile = new StreamWriter(fileName))
+                try
                 {
-                    outputFile.Write(content);
+                    using (StreamWriter outputFile = new StreamWriter(fileName, false, System.Text.Encoding.UTF8))
+                    {
+                        outputFile.Write(content);
+                    }
+                } catch (Exception ex)
+                {
+                    log.Error("Failed writing range file " + fileName+" ex="+ex.Message);
+                    log.Info("Restoring range file from backup file " + bakFile);
+                    try
+                    {
+                        File.Copy(bakFile, fileName, true);
+                    } catch (Exception ex2)
+                    {
+                        log.Error("Failed restoring range file from backup file " + bakFile + " ex=" + ex2.Message);
+                    }
+                    throw ex;
                 }
+
             }
             else
                 log.Debug("File not specified - nothing saved");
@@ -108,7 +135,7 @@ namespace spotchempdf
         public static ReadingRanges Load(string fileName)
         {
             log.Debug("Loading reading ranges from " + fileName);
-            string contents = File.ReadAllText(fileName);
+            string contents = File.ReadAllText(fileName, System.Text.Encoding.UTF8);
             ReadingRanges rr = ReadingRanges.FromJSON(contents);
 
             return rr;

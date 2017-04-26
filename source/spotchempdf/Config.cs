@@ -102,7 +102,7 @@ namespace spotchempdf
         {
             string cfgFile = configFolder + @"\" + configFile;
             log.Debug("Loading configuration from " + cfgFile);
-            string contents = File.ReadAllText(cfgFile);
+            string contents = File.ReadAllText(cfgFile, System.Text.Encoding.UTF8);
             Config c = FromJSON(contents);
 
             return c;
@@ -111,12 +111,39 @@ namespace spotchempdf
         public void Save()
         {
             string cfgFile = configFolder + @"\" + configFile;
+            string cfgFileBak = cfgFile + ".bak";
             log.Debug("Saving configuration to " + cfgFile);
             string content = this.toJSON();
             Directory.CreateDirectory(configFolder);
-            using (StreamWriter outputFile = new StreamWriter(cfgFile))
+
+            try
             {
-                outputFile.Write(content);
+                System.IO.File.Copy(cfgFile, cfgFileBak, true);
+            } catch (Exception ex)
+            {
+                log.Error("Failed creating backup file: " + cfgFileBak+" ex="+ex.Message);
+            }
+
+            try
+            {
+                using (StreamWriter outputFile = new StreamWriter(cfgFile, false, System.Text.Encoding.UTF8))
+                {
+                    outputFile.Write(content);
+                }
+            } catch (Exception ex)
+            {
+                log.Error("Failed saving configuration. "+ex.Message);
+
+                try
+                {
+                    System.IO.File.Copy(cfgFileBak, cfgFile, true);
+                    log.Info("Configuration restored from backup file: ");
+                } catch
+                {
+                    log.Error("Failed restoring backup file: " + cfgFileBak);
+                }
+
+                throw ex;
             }
         }
 
