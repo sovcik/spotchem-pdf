@@ -1,0 +1,12 @@
+[02]17/04/05     19:32  
+ID# 0224            
+ MULTI:PANEL-V      
+BUN   [1E]  8.4 mmol/L 
+Glu   [1E]  8.6 mmol/L 
+ALP   [1E] 5.56 ukat/L 
+T-Pro     55 g/L    
+GPT     0.93 ukat/L 
+Cre       61 umol/L 
+[17][02]SINGLE:             
+Ca      2.91 mmol/L 
+[03]

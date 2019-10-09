@@ -1,0 +1,10 @@
+[02]17/03/30     20:23  
+ID# 0223            
+ MULTI:PANEL-V      
+BUN      7.4 mmol/L 
+Glu      6.4 mmol/L 
+ALP   UNDER <  0.83 
+T-Pro [1E]   82 g/L    
+GPT     1.36 ukat/L 
+Cre      152 umol/L 
+[03]
